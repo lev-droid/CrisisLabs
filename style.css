@@ -9,6 +9,8 @@ body {
 
 canvas {
 	background-color: #3c3c3c;
+	/*width: 40vh;
+	height: 40vh;*/
 	
 	border: 4px solid var(--risk-colour);
 }

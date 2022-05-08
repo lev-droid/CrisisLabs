@@ -8,9 +8,10 @@
 	
 	<body>
 
-		<canvas class="graph" id="graphX" width="384" height="384"> 
+		<canvas class="graph" id="graph" width="384" height="384" onmousemove="graphMouseMove(event)" onmousedown="graphMouseDown(event)" onmouseleave="graphMouseLeave()"> 
 			Your browser does not support the canvas element. 
-		</canvas>		
+		</canvas>
+		<div onclick="recieveData()">Recieve Data</div>
 		<?php
 			echo "My first PHP script!";
 		?>
