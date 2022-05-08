@@ -1,0 +1,14 @@
+:root {
+	--risk-colour: #9999ff;
+}
+
+
+body {
+	background-color: #282828;
+}
+
+canvas {
+	background-color: #3c3c3c;
+	
+	border: 4px solid var(--risk-colour);
+}
