@@ -289,7 +289,7 @@ function recieveData() // recieve data from server
 
 function unrecieveData()
 {
-    data[cData].shift();
+    data[cData].pop();
     
     drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
@@ -360,7 +360,7 @@ function graphMouseMove(event) {
 			scrollPosX = scrollPosXMax;
 		}
 		
-		scrollValueX = stretchNum(scrollPosX, 0, GRAPHSIZE-GRAPHMARGINX, SCROLLMINX, SCROLLMAXX);
+		scrollValueX = stretchNum(scrollPosX, 0, scrollPosXMax, SCROLLMINX, SCROLLMAXX);
 		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	} else if (graphDraggingY) 
 	{
@@ -374,7 +374,7 @@ function graphMouseMove(event) {
 			scrollPosY = scrollPosYMax;
 		}
 		
-		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, GRAPHSIZE-GRAPHMARGINY, SCROLLMINY, SCROLLMAXY);
+		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, scrollPosYMax, SCROLLMINY, SCROLLMAXY);
 		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	}
 }
