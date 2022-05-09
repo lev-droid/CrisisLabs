@@ -22,6 +22,12 @@
 	
 		<button onclick="recieveData()">Recieve Data</button>
         <button onclick="unrecieveData()">Unrecieve Data</button>
+		
+		<button onclick="changeRisk();">Low Risk</button>
+		<button onclick="changeRisk(1);">Medium Risk</button>
+		<button onclick="changeRisk(2);">High Risk</button>
+		<button onclick="changeRisk(3);">Imminent</button>
+		<button onclick="changeRisk(4);">Ongoing</button>
 		<?php
 			echo "My first PHP script!";
 		?>

@@ -1,11 +1,60 @@
-    var GraphContext;
+var cFrame = 0; // The current frame.
+
+var GraphContext;
 var Graph;
 
+var risk = 0;
 var riskColour = "#9999ff";
 
 const GRAPHSIZE = 384;
 const BORDERTHICKNESS = 4;
+const FPS = 30; // Determines frame rate, for animations and such.
 
+
+var AnimationQueue = []; // Array of queued animations.
+class Animation // The eternal animation class. I just can't seem to escape it, no matter what language I run to.
+{
+	constructor(func, finalFunc, length) 
+	{
+		// With the implementation of a 'last frame' function, the seperate 'frame' class has become entirely unneccesary; each animation can simply start running another when it ends.
+		this.PerFrame = func;
+		this.LastFrame = finalFunc;
+		
+		this.Length = length;
+		this.StartFrame = 0;
+	}
+	
+	Run(sFrame) // Makes this animation run on frame sFrame.
+	{
+		// Clone this animation.
+		nAnim = new Animation();
+		nAnim.PerFrame = this.PerFrame;
+		nAnim.LastFrame = this.LastFrame;
+		nAnim.Length = this.Length;
+		
+		// Set the start frame and add it to the queue.
+		nAnim.StartFrame = sFrame;
+		AnimationQueue.push(nAnim);
+	}
+}
+
+function AnimationManager()
+{
+	for (var i = 0; i < AnimationQueue.length; i++) 
+	{
+		cAnimation = AnimationQueue[i];
+		if (cFrame >= cAnimation.StartFrame) // If the animation should be running...
+		{
+			cAnimation.PerFrame(); // Run it.
+		}
+		
+		if (cFrame >= cAnimation.StartFrame + cAnimation.Length) // If the animation should be over...
+		{
+			cAnimation.LastFrame(); // Run its 'last frame' animation,
+			AnimationQueue.splice(i, 1); // and remove it from the queue.
+		}
+	}
+}
 
 function stretchNum(input, min, max, nmin, nmax) // Converts input to its equivelent value in a new range
 {
@@ -57,6 +106,34 @@ function drawRectangle(ctx, colour, posX, sizeX, posY, sizeY)
 	
 	ctx.fillRect(posX, posY, sizeX, sizeY);
 }
+
+function changeRisk(n)
+{
+	switch (n)
+	{
+	case (1):
+		riskColour = "#d2de2a"; // Green (med risk)
+		break;
+	case (2):
+		riskColour = "#edb715"; // Yellow (high risk)
+		break;
+	case (3):
+		riskColour = "#e67a27"; // Orange (imminent)
+		break;
+	case (4):
+		riskColour = "#eb381c"; // Red (ongoing)
+		break;
+	default:
+		riskColour = "#9999ff"; // Blue (low risk)
+		break;
+	}
+	
+	risk = n;
+	document.documentElement.style.setProperty("--risk-colour", riskColour);
+	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+}
+
+
 
 const GRAPHCIRCLESIZE = 2;
 const GRAPHLINESIZE = 1;
@@ -298,6 +375,9 @@ function onLoad() {
 	Graph = document.getElementById("graph");
 	GraphContext = Graph.getContext("2d");
 	
+	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
+	document.addEventListener('mouseup', graphMouseUp);
+	
 	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, dataX, scrollValueX, -scrollValueY, scrollValueY);
 }
 
@@ -390,4 +470,3 @@ function changeGraph(newGraph) {
 }
 
 window.onload = onLoad;
-document.addEventListener('mouseup', graphMouseUp);
