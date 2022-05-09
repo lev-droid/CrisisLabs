@@ -1,22 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
 :root {
 	--risk-colour: #9999ff;
+	--background-colour: #282828;
+	--background-colour-2: #3c3c3c;
     
     --graph-size: 384px;
     --margin: 20px;
     
     --border: 4px;
     
-    --triangle-size: 24px;
-    --graph-options: 96px;
+    --graph-options-width: 24px;
+    --graph-options-height: 96px;
 }
+
 
 
 body {
-	background-color: #282828;
+	background-color: var(--background-colour);
 }
 
 canvas {
-	background-color: #3c3c3c;
+	background-color: var(--background-colour-2);
 	width: var(--graph-size);
 	height: var(--graph-size);
     
@@ -25,6 +30,7 @@ canvas {
     top: var(--margin);
 	
 	border: var(--border) solid var(--risk-colour);
+	z-index: 10;
 }
 
 .graphMenuTop {
@@ -33,10 +39,11 @@ canvas {
     
     position: fixed;
     left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options)/2 - var(--triangle-size));
+    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
     
-    border-right: var(--triangle-size) solid transparent;
-    border-bottom: var(--triangle-size) solid var(--risk-colour);
+    border-right: var(--graph-options-width) solid transparent;
+    border-bottom: var(--graph-options-width) solid var(--risk-colour);
+	z-index: 8;
 }
 .graphMenuBottom {
     width: 0;
@@ -44,18 +51,45 @@ canvas {
     
     position: fixed;
     left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 + var(--graph-options)/2);
+    top: calc(var(--margin) + var(--graph-size)/2 + var(--graph-options-height)/2);
     
-    border-right: var(--triangle-size) solid transparent;
-    border-top: var(--triangle-size) solid var(--risk-colour);
+    border-right: var(--graph-options-width) solid transparent;
+    border-top: var(--graph-options-width) solid var(--risk-colour);
+	z-index: 8;
 }
 .graphMenu {
-    width: var(--triangle-size);
-    height: calc(var(--graph-options));
+    width: var(--graph-options-width);
+    height: calc(var(--graph-options-height));
     
     position: fixed;
     left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options)/2);
+    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2);
+	z-index: 9;
     
     background-color: var(--risk-colour);
+}
+.graphMenuButton {
+	width: calc(var(--graph-options-width) - var(--border));
+	height: calc(var(--graph-options-height) / 3);
+	
+	/*position: fixed;
+	left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2);*/
+	z-index: 10;
+	
+	/*background-color: var(--background-colour-2);*/
+	background-color: transparent;
+	color: #ffffff;
+	border: none;
+	padding: none;
+	transition-duration: 0.2s;
+	
+	text-align: center;
+	vertical-align: middle;
+	font-family: "Lato", "sans-serif";
+	font-size: 19px;
+}
+.graphMenuButton:hover {
+	background-color: #ffffff;
+	color: var(--risk-colour);
 }

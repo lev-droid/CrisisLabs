@@ -305,11 +305,11 @@ function onLoad() {
 
 function graphScrollHitboxX(x, y)
 {
-	return ( (x>GRAPHMARGINX) && (x<GRAPHSIZE-GRAPHMARGINX) && (y>GRAPHSIZE-GRAPHMARGINY/2) && (y<GRAPHSIZE-GRAPHMARGINY+SCROLLBARY*1.5) ); // Not sure why the * 1.5 and the * 0.5 since I found it through trial and error but it works so I'll leave it for now
+	return ( (x>GRAPHMARGINX) && (x<GRAPHSIZE-GRAPHMARGINX) && (y>GRAPHSIZE-GRAPHMARGINY/2) && (y<GRAPHSIZE+SCROLLBARY) );
 }
 function graphScrollHitboxY(x, y)
 {
-	return ( (x>GRAPHMARGINX-SCROLLBARY*1.5) && (x<GRAPHMARGINX+SCROLLBARY/2) && (y>GRAPHMARGINY) && (y<GRAPHSIZE-GRAPHMARGINY) );
+	return ( (x>GRAPHMARGINX) && (x<GRAPHMARGINX+SCROLLBARY) && (y>GRAPHMARGINY) && (y<GRAPHSIZE-GRAPHMARGINY) );
 }
 
 var graphDraggingX = false;
