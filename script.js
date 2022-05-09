@@ -3,8 +3,18 @@ var cFrame = 0; // The current frame.
 var GraphContext;
 var Graph;
 
+var riskColourMap = [
+	[153, 153, 255],
+	[210, 222, 42],
+	[237, 183, 21],
+	[230, 122, 39],
+	[235, 56, 28]
+];
 var risk = 0;
-var riskColour = "#9999ff";
+var riskColour = "rgb(153, 153, 255)";
+var riskColourRGB = [153, 153, 255];
+var oldColourRGB = [153, 153, 255];
+var newColourRGB = [153, 153, 255];
 
 const GRAPHSIZE = 384;
 const BORDERTHICKNESS = 4;
@@ -22,43 +32,64 @@ class Animation // The eternal animation class. I just can't seem to escape it, 
 		
 		this.Length = length;
 		this.StartFrame = 0;
+		
+		this.Queued = false;
+		this.Base = null;
+		this.Instance = null;
 	}
 	
 	Run(sFrame) // Makes this animation run on frame sFrame.
 	{
-		// Clone this animation.
-		nAnim = new Animation();
-		nAnim.PerFrame = this.PerFrame;
-		nAnim.LastFrame = this.LastFrame;
-		nAnim.Length = this.Length;
-		
-		// Set the start frame and add it to the queue.
-		nAnim.StartFrame = sFrame;
-		AnimationQueue.push(nAnim);
+		if (!this.Queued) // If this animation is already being run, it doesn't need to be run again.
+		{
+			// Clone this animation.
+			var nAnim = new Animation();
+			nAnim.PerFrame = this.PerFrame;
+			nAnim.LastFrame = this.LastFrame;
+			nAnim.Length = this.Length;
+			nAnim.Base = this;
+			
+			this.Queued = true;
+			this.Instance = nAnim;
+			
+			// Set the start frame and add it to the queue.
+			nAnim.StartFrame = sFrame;
+			AnimationQueue.push(nAnim);
+		}
 	}
 }
 
 function AnimationManager()
 {
+	cFrame++;
 	for (var i = 0; i < AnimationQueue.length; i++) 
 	{
 		cAnimation = AnimationQueue[i];
 		if (cFrame >= cAnimation.StartFrame) // If the animation should be running...
 		{
-			cAnimation.PerFrame(); // Run it.
+			cAnimation.PerFrame(cFrame - cAnimation.StartFrame); // Run it.
 		}
 		
 		if (cFrame >= cAnimation.StartFrame + cAnimation.Length) // If the animation should be over...
 		{
 			cAnimation.LastFrame(); // Run its 'last frame' animation,
-			AnimationQueue.splice(i, 1); // and remove it from the queue.
+			cAnimation.Base.Queued = false; // Allow the animation to be run again.
+			cAnimation.Base.Instance = null;
+			AnimationQueue.splice(i-1, 1); // and remove it from the queue.
 		}
 	}
 }
 
+
 function stretchNum(input, min, max, nmin, nmax) // Converts input to its equivelent value in a new range
 {
 	return ((((input-min)/(max-min)) * (nmax-nmin)) + nmin);
+}
+
+function convertColour(input1, input2, input3)
+{
+	console.log("rgb(" + input1.toString() + ", " + input2.toString() + ", " + input3.toString() + ")");
+	return ("rgb(" + input1.toString() + ", " + input2.toString() + ", " + input3.toString() + ")");
 }
 
 
@@ -108,30 +139,35 @@ function drawRectangle(ctx, colour, posX, sizeX, posY, sizeY)
 }
 
 function changeRisk(n)
-{
-	switch (n)
+{	
+	if (!changeColour.Queued) // This if statement shouldn't be in the final version, it's just here to make this look nicer.
 	{
-	case (1):
-		riskColour = "#d2de2a"; // Green (med risk)
-		break;
-	case (2):
-		riskColour = "#edb715"; // Yellow (high risk)
-		break;
-	case (3):
-		riskColour = "#e67a27"; // Orange (imminent)
-		break;
-	case (4):
-		riskColour = "#eb381c"; // Red (ongoing)
-		break;
-	default:
-		riskColour = "#9999ff"; // Blue (low risk)
-		break;
+		oldColourRGB = riskColourRGB;
+		newColourRGB = riskColourMap[n];
+		
+		risk = n;
+		
+		changeColour.Run(cFrame+1); // Run the colour updating animation next frame.
 	}
-	
-	risk = n;
-	document.documentElement.style.setProperty("--risk-colour", riskColour);
-	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
+const CHANGECOLOURLENGTH = 1;
+changeColour = new Animation(
+	function(cProgress) {
+		for (var i = 0; i < 3; i++) // Loop through all 3 channels of the colour.
+		{
+			riskColourRGB[i] = stretchNum(Math.sin(stretchNum(cProgress, 0, FPS*CHANGECOLOURLENGTH, Math.PI*2, Math.PI*5/2)), 0, 1, oldColourRGB[i], newColourRGB[i]); // Converts the progress through the animation to progress from one colour to another. Fades in and out according to a sine function.
+		}
+		
+		// Update the colour both in the CSS and the rest of the script.
+		riskColour = convertColour(riskColourRGB[0], riskColourRGB[1], riskColourRGB[2]);
+		document.documentElement.style.setProperty("--risk-colour", riskColour);
+		
+		// Redraw the graph to display the change in colour.
+		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+	},
+	function(){},
+	FPS*CHANGECOLOURLENGTH
+);
 
 
 
