@@ -1,4 +1,4 @@
-var GraphContext;
+    var GraphContext;
 var Graph;
 
 var riskColour = "#9999ff";
@@ -32,6 +32,21 @@ function drawCircle(ctx, colour, centerX, centerY, radius)
 	
 	ctx.beginPath();
 	ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+	ctx.fill();
+	ctx.closePath();
+}
+
+function drawTriangle(ctx, colour, oneX, oneY, twoX, twoY, threeX, threeY)
+{
+	ctx.fillStyle = colour;
+	
+	ctx.beginPath();
+    ctx.moveTo(oneX, oneY);
+
+    ctx.lineTo(twoX, twoY);
+    ctx.lineTo(threeX, threeY);
+    ctx.lineTo(oneX, oneY);
+
 	ctx.fill();
 	ctx.closePath();
 }
@@ -157,7 +172,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		if (i % vertLinesDistance == 0) {
 			ctx.fillStyle = "#ffffff";
 			ctx.font = "10px Monospace";
-			ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX) - (i.toString().length)*3, GRAPHMARGINY-5); 
+			ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX) - (i.toString().length)*3, GRAPHMARGINY-3); 
 		}
 	}
 	
@@ -167,7 +182,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		if (i % horizLinesDistance == 0) {
 			ctx.fillStyle = "#ffffff";
 			ctx.font = "10px Monospace";
-			ctx.fillText(i, GRAPHSIZE-GRAPHMARGINX+(i.toString().length)+3, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY)+3);
+			ctx.fillText(i, GRAPHSIZE-GRAPHMARGINX+(i.toString().length)+1, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY)+3);
 		}
 	}
 	
@@ -186,12 +201,48 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	ctx.font = "40px Monospace";
 	ctx.fillText("+", GRAPHMARGINX-SCROLLBARY-1, GRAPHSIZE-GRAPHMARGINY+25); 
 	ctx.fillText("-", GRAPHMARGINX-SCROLLBARY, GRAPHMARGINY-2); 
-	ctx.fillText("-", GRAPHSIZE-GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINY+23); 	
+	ctx.fillText("-", GRAPHSIZE-GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINY+23);
 }
 
 
 
-var Data = [
+var dataX = [
+	[Math.random()*0.5+0.5, Math.random()*20-10],
+	[Math.random()*0.5+1.5, Math.random()*20-10],
+	[Math.random()*0.5+2.5, Math.random()*20-10],
+	[Math.random()*0.5+3.5, Math.random()*20-10],
+	[Math.random()*0.5+4.5, Math.random()*20-10],
+	[Math.random()*0.5+5.5, Math.random()*20-10],
+	[Math.random()*0.5+6.5, Math.random()*20-10],
+	[Math.random()*0.5+7.5, Math.random()*20-10],
+	[Math.random()*0.5+8.5, Math.random()*20-10],
+	[Math.random()*0.5+9.5, Math.random()*20-10],
+	[Math.random()*0.5+10.5, Math.random()*20-10],
+	[Math.random()*0.5+11.5, Math.random()*20-10],
+	[Math.random()*0.5+12.5, Math.random()*20-10],
+	[Math.random()*0.5+13.5, Math.random()*20-10],
+	[Math.random()*0.5+14.5, Math.random()*20-10],
+	[Math.random()*0.5+15.5, Math.random()*20-10]
+];
+var dataY = [
+	[Math.random()*0.5+0.5, Math.random()*20-10],
+	[Math.random()*0.5+1.5, Math.random()*20-10],
+	[Math.random()*0.5+2.5, Math.random()*20-10],
+	[Math.random()*0.5+3.5, Math.random()*20-10],
+	[Math.random()*0.5+4.5, Math.random()*20-10],
+	[Math.random()*0.5+5.5, Math.random()*20-10],
+	[Math.random()*0.5+6.5, Math.random()*20-10],
+	[Math.random()*0.5+7.5, Math.random()*20-10],
+	[Math.random()*0.5+8.5, Math.random()*20-10],
+	[Math.random()*0.5+9.5, Math.random()*20-10],
+	[Math.random()*0.5+10.5, Math.random()*20-10],
+	[Math.random()*0.5+11.5, Math.random()*20-10],
+	[Math.random()*0.5+12.5, Math.random()*20-10],
+	[Math.random()*0.5+13.5, Math.random()*20-10],
+	[Math.random()*0.5+14.5, Math.random()*20-10],
+	[Math.random()*0.5+15.5, Math.random()*20-10]
+];
+var dataZ = [
 	[Math.random()*0.5+0.5, Math.random()*20-10],
 	[Math.random()*0.5+1.5, Math.random()*20-10],
 	[Math.random()*0.5+2.5, Math.random()*20-10],
@@ -210,6 +261,11 @@ var Data = [
 	[Math.random()*0.5+15.5, Math.random()*20-10]
 ];
 
+var cData = 0;
+var data = [dataX, dataY, dataZ];
+
+
+
 function requestData() // request data from server
 {
 	
@@ -217,25 +273,32 @@ function requestData() // request data from server
 
 function recieveData() // recieve data from server
 {
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
-	Data.push([Math.random()*0.5+Data.length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
+	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, Data, scrollValueX, -scrollValueY, scrollValueY);
+	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+}
+
+function unrecieveData()
+{
+    data[cData].shift();
+    
+    drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
 
 function onLoad() {
 	Graph = document.getElementById("graph");
 	GraphContext = Graph.getContext("2d");
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, Data, scrollValueX, -scrollValueY, scrollValueY);
+	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, dataX, scrollValueX, -scrollValueY, scrollValueY);
 }
 
 
@@ -298,7 +361,7 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueX = stretchNum(scrollPosX, 0, GRAPHSIZE-GRAPHMARGINX, SCROLLMINX, SCROLLMAXX);
-		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, Data, scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	} else if (graphDraggingY) 
 	{
 		scrollPosY = event.clientY - GRAPHMARGINY - SCROLLBARX;
@@ -312,13 +375,18 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, GRAPHSIZE-GRAPHMARGINY, SCROLLMINY, SCROLLMAXY);
-		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, Data, scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	}
 }
 
 function graphMouseLeave() {
 	/*graphDraggingX = false;
 	graphDraggingY = false;*/
+}
+
+function changeGraph(newGraph) {
+    cData = newGraph;
+    drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
 
 window.onload = onLoad;
