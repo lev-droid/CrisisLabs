@@ -27,7 +27,6 @@ body {
 
 button {
 	position: relative;
-	top: calc(var(--graph-size) + var(--margin)*2);
 }
 
 .graph {
@@ -36,8 +35,8 @@ button {
 	height: var(--graph-size);
     
     position: fixed;
-    left: var(--margin);
-    top: var(--margin);
+    right: var(--margin);
+    top: calc(var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height));
 	
 	border: var(--border) solid var(--risk-colour);
 	z-index: 10;
@@ -47,10 +46,10 @@ button {
     height: 0;
     
     position: fixed;
-    left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
     
-    border-right: var(--graph-options-width) solid transparent;
+    border-left: var(--graph-options-width) solid transparent;
     border-bottom: var(--graph-options-width) solid var(--risk-colour);
 	z-index: 8;
 }
@@ -59,10 +58,10 @@ button {
     height: 0;
     
     position: fixed;
-    left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 + var(--graph-options-height)/2);
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 + var(--graph-options-height)/2);
     
-    border-right: var(--graph-options-width) solid transparent;
+    border-left: var(--graph-options-width) solid transparent;
     border-top: var(--graph-options-width) solid var(--risk-colour);
 	z-index: 8;
 }
@@ -71,8 +70,8 @@ button {
     height: calc(var(--graph-options-height));
     
     position: fixed;
-    left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2);
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
 	z-index: 9;
     
     background-color: var(--risk-colour);
@@ -81,8 +80,9 @@ button {
 	width: calc(var(--graph-options-width) - var(--border));
 	height: calc(var(--graph-options-height) / 3);
 	
-	position: static;
-	/*left: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+	position: relative;
+	left: calc(var(--border));
+	/*right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2);*/
 	z-index: 10;
 	
