@@ -28,6 +28,15 @@
 		<button onclick="changeRisk(2);">High Risk</button>
 		<button onclick="changeRisk(3);">Imminent</button>
 		<button onclick="changeRisk(4);">Ongoing</button>
+		
+		<div class="riskMenu">
+			<div class="riskMenuBackgroundTop"><div class="riskMenuLabel">THREAT LEVEL</div></div>
+			<div class="riskMenuBackgroundTopTriangle"></div>
+			
+			<div class="riskMenuBackground"><div class="riskMenuDisplay">LOW RISK</div></div>
+			<div class="riskMenuBackgroundTriangle"></div>
+			<div id="riskMenuTransition"></div>
+		</div>
 		<?php
 			echo "My first PHP script!";
 		?>

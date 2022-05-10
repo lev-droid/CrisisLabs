@@ -10,6 +10,13 @@ var riskColourMap = [
 	[230, 122, 39],
 	[235, 56, 28]
 ];
+var riskNameMap = [
+	"Low Risk",
+	"Medium Risk",
+	"High Risk",
+	"Imminent",
+	"Ongoing"
+];
 var risk = 0;
 var riskColour = "rgb(153, 153, 255)";
 var riskColourRGB = [153, 153, 255];
@@ -24,7 +31,7 @@ const FPS = 30; // Determines frame rate, for animations and such.
 var AnimationQueue = []; // Array of queued animations.
 class Animation // The eternal animation class. I just can't seem to escape it, no matter what language I run to.
 {
-	constructor(func, finalFunc, length) 
+	constructor(func, finalFunc, length, name) 
 	{
 		// With the implementation of a 'last frame' function, the seperate 'frame' class has become entirely unneccesary; each animation can simply start running another when it ends.
 		this.PerFrame = func;
@@ -36,16 +43,21 @@ class Animation // The eternal animation class. I just can't seem to escape it, 
 		this.Queued = false;
 		this.Base = null;
 		this.Instance = null;
+		
+		this.Name = name; // For debugging only.
 	}
 	
 	Run(sFrame) // Makes this animation run on frame sFrame.
 	{
+		console.log(this.Name);
 		if (!this.Queued) // If this animation is already being run, it doesn't need to be run again.
 		{
 			// Clone this animation.
 			var nAnim = new Animation();
 			nAnim.PerFrame = this.PerFrame;
 			nAnim.LastFrame = this.LastFrame;
+			
+			console.log(this.PerFrame);
 			nAnim.Length = this.Length;
 			nAnim.Base = this;
 			
@@ -148,9 +160,11 @@ function changeRisk(n)
 		risk = n;
 		
 		changeColour.Run(cFrame+1); // Run the colour updating animation next frame.
+		changeText.Run(cFrame+1);
 	}
 }
 const CHANGECOLOURLENGTH = 1;
+var root;
 changeColour = new Animation(
 	function(cProgress) {
 		for (var i = 0; i < 3; i++) // Loop through all 3 channels of the colour.
@@ -160,14 +174,62 @@ changeColour = new Animation(
 		
 		// Update the colour both in the CSS and the rest of the script.
 		riskColour = convertColour(riskColourRGB[0], riskColourRGB[1], riskColourRGB[2]);
-		document.documentElement.style.setProperty("--risk-colour", riskColour);
+		root.style.setProperty("--risk-colour", riskColour);
 		
 		// Redraw the graph to display the change in colour.
 		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	},
-	function(){},
-	FPS*CHANGECOLOURLENGTH
+	function() {},
+	FPS*CHANGECOLOURLENGTH,
+	"Change Colour"
 );
+const RISKWIDTH = 384;
+const RISKMARGIN = 20;
+var riskMenuTransition;
+changeText = new Animation(
+	function (cProgress) {
+		riskMenuTransition.style.setProperty("width", (stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH, 0, 0.8) * RISKWIDTH) + "px");
+	},
+	function() {
+		console.log("a");
+		changeText2.Run(cFrame+1);
+	},
+	FPS/2*CHANGECOLOURLENGTH,
+	"Change Text A"
+);
+changeText2 = new Animation(
+	function (cProgress) {},
+	function() {
+		console.log("b");
+		riskMenuTransition.innerHTML = riskNameMap.upper();
+		changeText3.Run(cFrame+1);
+	},
+	0,
+	"Change Text B"
+);
+changeText3 = new Animation(
+	function (cProgress) {
+		console.log("c");
+		riskMenuTransition.style.setProperty("right", (stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH, 0, 1) * RISKMARGIN) + "px");
+	},
+	function() {
+		console.log("d");
+		changeText4.Run(cFrame+1);
+	},
+	FPS/2*CHANGECOLOURLENGTH,
+	"Change Text C"
+);
+changeText4 = new Animation(
+	function (cProgress) {},
+	function() {
+		console.log("e");
+		riskMenuTransition.style.setProperty("width", 0);
+		riskMenuTransition.style.setProperty("right", RISKMARGIN + "px");
+	},
+	0,
+	"Change Text D"
+);
+
 
 
 
@@ -408,8 +470,12 @@ function unrecieveData()
 }
 
 function onLoad() {
+	root = document.documentElement;
+	
 	Graph = document.getElementById("graph");
 	GraphContext = Graph.getContext("2d");
+	
+	riskMenuTransition = document.getElementById("riskMenuTransition");
 	
 	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
 	document.addEventListener('mouseup', graphMouseUp);
