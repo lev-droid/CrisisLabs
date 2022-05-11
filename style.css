@@ -1,16 +1,196 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
 :root {
 	--risk-colour: #9999ff;
+	--background-colour: #282828;
+	--background-colour-2: #3c3c3c;
+    
+    --graph-size: 384px;
+    --margin: 20px;
+    
+    --border: 4px;
+    
+    --graph-options-width: 24px;
+    --graph-options-height: 96px;
+	
+	--risk-top-width: 160px;
+	--risk-top-height: 32px;
+	
+	--risk-width: 384px;
+	--risk-height: 64px;
 }
-
 
 body {
-	background-color: #282828;
+	background-color: var(--background-colour);
+	font-family: "Lato", "sans-serif";
 }
 
-canvas {
-	background-color: #3c3c3c;
-	/*width: 40vh;
-	height: 40vh;*/
+button {
+	position: relative;
+}
+
+.graph {
+	background-color: var(--background-colour-2);
+	width: var(--graph-size);
+	height: var(--graph-size);
+    
+    position: fixed;
+    right: var(--margin);
+    top: calc(var(--margin)*2 + var(--risk-top-height) + var(--risk-height));
 	
-	border: 4px solid var(--risk-colour);
+	border: var(--border) solid var(--risk-colour);
+	z-index: 10;
+}
+.graphMenuTop {
+    width: 0;
+    height: 0;
+    
+    position: fixed;
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
+    
+    border-left: var(--graph-options-width) solid transparent;
+    border-bottom: var(--graph-options-width) solid var(--risk-colour);
+	z-index: 8;
+}
+.graphMenuBottom {
+    width: 0;
+    height: 0;
+    
+    position: fixed;
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 + var(--graph-options-height)/2);
+    
+    border-left: var(--graph-options-width) solid transparent;
+    border-top: var(--graph-options-width) solid var(--risk-colour);
+	z-index: 8;
+}
+.graphMenu {
+    width: var(--graph-options-width);
+    height: calc(var(--graph-options-height));
+    
+    position: fixed;
+    right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
+	z-index: 9;
+    
+    background-color: var(--risk-colour);
+}
+.graphMenuButton {
+	width: calc(var(--graph-options-width) - var(--border));
+	height: calc(var(--graph-options-height) / 3);
+	
+	position: relative;
+	left: calc(var(--border));
+	/*right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
+    top: calc(var(--margin) + var(--graph-size)/2 - var(--graph-options-height)/2);*/
+	z-index: 10;
+	
+	/*background-color: var(--background-colour-2);*/
+	background-color: transparent;
+	color: #ffffff;
+	border: none;
+	padding: none;
+	transition-duration: 0.2s;
+	
+	text-align: center;
+	vertical-align: middle;
+	font-size: 19px;
+}
+.graphMenuButton:hover {
+	background-color: #ffffff;
+	color: var(--risk-colour);
+}
+
+
+
+#riskMenuBackgroundTop {
+	width: calc(var(--risk-top-width));
+	height: calc(var(--risk-top-height));
+	
+	position: fixed;
+	right: calc(var(--margin));
+	top: calc(var(--margin));
+	z-index: 12;
+    
+    background-color: var(--risk-colour);
+}
+#riskMenuBackgroundTopTriangle {
+    width: 0;
+    height: 0;
+	
+	position: fixed;
+	right: calc(var(--margin) + var(--risk-top-width));
+	top: calc(var(--margin));
+	z-index: 12;
+    
+    border-left: var(--risk-top-height) solid transparent;
+    border-bottom: var(--risk-top-height) solid var(--risk-colour);
+}
+#riskMenuLabel {
+	width: calc(var(--risk-top-width) - var(--margin));
+	height: calc(var(--risk-top-height));
+	
+	position: fixed;
+	right: calc(var(--margin)*2);
+	top: calc(var(--margin));
+	z-index: 12;
+    
+    background-color: transparent;
+	color: #ffffff;
+	
+	text-align: right;
+	line-height: calc(var(--risk-top-height));
+	font-size: 18px;
+}
+
+#riskMenuBackground {
+	width: calc(var(--risk-width));
+	height: calc(var(--risk-height));
+	
+	position: fixed;
+	right: calc(var(--margin));
+	top: calc(var(--margin) + var(--risk-top-height));
+	z-index: 12;
+    
+    background-color: var(--risk-colour);
+}
+#riskMenuBackgroundTriangle {
+    width: 0;
+    height: 0;
+	
+	position: fixed;
+	right: calc(var(--margin) + var(--risk-width));
+	top: calc(var(--margin) + var(--risk-top-height));
+	z-index: 12;
+    
+    border-left: var(--risk-height) solid transparent;
+    border-top: var(--risk-height) solid var(--risk-colour);
+}
+#riskMenuDisplay {
+	width: calc(var(--risk-width) - var(--margin));
+	height: calc(var(--risk-height));
+	
+	position: fixed;
+	right: calc(var(--margin)*2);
+	top: calc(var(--margin) + var(--risk-top-height));
+	z-index: 12;
+    
+    background-color: transparent;
+	color: #ffffff;
+	
+	text-align: right;
+	line-height: calc(var(--risk-height));
+	font-size: 50px;
+}
+#riskMenuTransition {
+	width: 0;
+	height: calc(var(--risk-height));
+	
+	position: fixed;
+	right: calc(var(--margin));
+	top: calc(var(--margin) + var(--risk-top-height));
+	z-index: 14;
+    
+    background-color: var(--risk-colour);
 }
