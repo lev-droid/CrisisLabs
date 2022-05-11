@@ -188,13 +188,14 @@ const RISKMARGIN = 20;
 var riskMenuTransition;
 changeText = new Animation(
 	function (cProgress) {
+		console.log(cProgress);
 		riskMenuTransition.style.setProperty("width", (stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH, 0, 0.8) * RISKWIDTH) + "px");
 	},
 	function() {
 		console.log("a");
-		changeText2.Run(cFrame+1);
+		//changeText2.Run(cFrame+20 );
 	},
-	FPS/2*CHANGECOLOURLENGTH,
+	(FPS/2)*CHANGECOLOURLENGTH,
 	"Change Text A"
 );
 changeText2 = new Animation(
@@ -204,7 +205,7 @@ changeText2 = new Animation(
 		riskMenuTransition.innerHTML = riskNameMap.upper();
 		changeText3.Run(cFrame+1);
 	},
-	0,
+	30,
 	"Change Text B"
 );
 changeText3 = new Animation(
@@ -487,20 +488,24 @@ function onLoad() {
 
 function graphScrollHitboxX(x, y)
 {
-	return ( (x>GRAPHMARGINX) && (x<GRAPHSIZE-GRAPHMARGINX) && (y>GRAPHSIZE-GRAPHMARGINY/2) && (y<GRAPHSIZE+SCROLLBARY) );
+	return ( (x>GRAPHMARGINX) && (x<GRAPHSIZE-GRAPHMARGINX) && (y>GRAPHSIZE-GRAPHMARGINY) && (y<GRAPHSIZE+SCROLLBARY) );
 }
 function graphScrollHitboxY(x, y)
 {
-	return ( (x>GRAPHMARGINX) && (x<GRAPHMARGINX+SCROLLBARY) && (y>GRAPHMARGINY) && (y<GRAPHSIZE-GRAPHMARGINY) );
+	return ( (x>GRAPHMARGINX-SCROLLBARY) && (x<GRAPHMARGINX) && (y>GRAPHMARGINY) && (y<GRAPHSIZE-GRAPHMARGINY) );
 }
 
 var graphDraggingX = false;
 var graphDraggingY = false;
 function graphMouseDown(event) {
-	if (graphScrollHitboxX(event.clientX, event.clientY)) {	
+	var bounds = event.target.getBoundingClientRect();
+	var clientX = event.clientX - bounds.left;
+	var clientY = event.clientY - bounds.top;
+	
+	if (graphScrollHitboxX(clientX, clientY)) {	
 		graphDraggingX = true;
 		graphMouseMove(event);
-	} else if (graphScrollHitboxY(event.clientX, event.clientY)) {	
+	} else if (graphScrollHitboxY(clientX, clientY)) {	
 		graphDraggingY = true;
 		graphMouseMove(event);
 	}
@@ -530,9 +535,15 @@ var scrollPosY = 0;
 var scrollValueY = SCROLLMAXY;
 
 function graphMouseMove(event) {
+	var bounds = event.target.getBoundingClientRect();
+	var clientX = event.clientX - bounds.left;
+	var clientY = event.clientY - bounds.top;
+	
+	console.log(clientX);
+	console.log(clientY);
 	if (graphDraggingX)
 	{
-		scrollPosX = event.clientX - GRAPHMARGINX - SCROLLBARX;
+		scrollPosX = clientX - GRAPHMARGINX - SCROLLBARX;
 		var scrollPosXMax = GRAPHSIZE - GRAPHMARGINX*2 - SCROLLBARX*2;
 		if (scrollPosX < 0)
 		{
@@ -546,7 +557,7 @@ function graphMouseMove(event) {
 		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	} else if (graphDraggingY) 
 	{
-		scrollPosY = event.clientY - GRAPHMARGINY - SCROLLBARX;
+		scrollPosY = clientY - GRAPHMARGINY - SCROLLBARX;
 		var scrollPosYMax = GRAPHSIZE - GRAPHMARGINY*2 - SCROLLBARX*2;
 		if (scrollPosY < 0)
 		{
