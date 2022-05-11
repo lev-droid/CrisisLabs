@@ -29,12 +29,13 @@
 		<button onclick="changeRisk(3);">Imminent</button>
 		<button onclick="changeRisk(4);">Ongoing</button>
 		
-		<div class="riskMenu">
-			<div class="riskMenuBackgroundTop"><div class="riskMenuLabel">THREAT LEVEL</div></div>
-			<div class="riskMenuBackgroundTopTriangle"></div>
+		<!-- these have ids instead of classes so i can script them -->
+		<div id="riskMenu"> 
+			<div id="riskMenuBackgroundTop"><div id="riskMenuLabel">THREAT LEVEL</div></div>
+			<div id="riskMenuBackgroundTopTriangle"></div>
 			
-			<div class="riskMenuBackground"><div class="riskMenuDisplay">LOW RISK</div></div>
-			<div class="riskMenuBackgroundTriangle"></div>
+			<div id="riskMenuBackground"><div id="riskMenuDisplay">LOW RISK</div></div>
+			<div id="riskMenuBackgroundTriangle"></div>
 			<div id="riskMenuTransition"></div>
 		</div>
 		<?php

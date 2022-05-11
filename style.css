@@ -13,7 +13,7 @@
     --graph-options-width: 24px;
     --graph-options-height: 96px;
 	
-	--risk-top-width: 192px;
+	--risk-top-width: 160px;
 	--risk-top-height: 32px;
 	
 	--risk-width: 384px;
@@ -36,7 +36,7 @@ button {
     
     position: fixed;
     right: var(--margin);
-    top: calc(var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height));
+    top: calc(var(--margin)*2 + var(--risk-top-height) + var(--risk-height));
 	
 	border: var(--border) solid var(--risk-colour);
 	z-index: 10;
@@ -47,7 +47,7 @@ button {
     
     position: fixed;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
     
     border-left: var(--graph-options-width) solid transparent;
     border-bottom: var(--graph-options-width) solid var(--risk-colour);
@@ -59,7 +59,7 @@ button {
     
     position: fixed;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 + var(--graph-options-height)/2);
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 + var(--graph-options-height)/2);
     
     border-left: var(--graph-options-width) solid transparent;
     border-top: var(--graph-options-width) solid var(--risk-colour);
@@ -71,7 +71,7 @@ button {
     
     position: fixed;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
-    top: calc((var(--margin)*2.5 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
+    top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
 	z-index: 9;
     
     background-color: var(--risk-colour);
@@ -104,7 +104,7 @@ button {
 
 
 
-.riskMenuBackgroundTop {
+#riskMenuBackgroundTop {
 	width: calc(var(--risk-top-width));
 	height: calc(var(--risk-top-height));
 	
@@ -115,7 +115,7 @@ button {
     
     background-color: var(--risk-colour);
 }
-.riskMenuBackgroundTopTriangle {
+#riskMenuBackgroundTopTriangle {
     width: 0;
     height: 0;
 	
@@ -127,7 +127,7 @@ button {
     border-left: var(--risk-top-height) solid transparent;
     border-bottom: var(--risk-top-height) solid var(--risk-colour);
 }
-.riskMenuLabel {
+#riskMenuLabel {
 	width: calc(var(--risk-top-width) - var(--margin));
 	height: calc(var(--risk-top-height));
 	
@@ -144,36 +144,36 @@ button {
 	font-size: 18px;
 }
 
-.riskMenuBackground {
+#riskMenuBackground {
 	width: calc(var(--risk-width));
 	height: calc(var(--risk-height));
 	
 	position: fixed;
 	right: calc(var(--margin));
-	top: calc(var(--margin)*1.5 + var(--risk-top-height));
+	top: calc(var(--margin) + var(--risk-top-height));
 	z-index: 12;
     
     background-color: var(--risk-colour);
 }
-.riskMenuBackgroundTriangle {
+#riskMenuBackgroundTriangle {
     width: 0;
     height: 0;
 	
 	position: fixed;
 	right: calc(var(--margin) + var(--risk-width));
-	top: calc(var(--margin)*1.5 + var(--risk-top-height));
+	top: calc(var(--margin) + var(--risk-top-height));
 	z-index: 12;
     
     border-left: var(--risk-height) solid transparent;
     border-top: var(--risk-height) solid var(--risk-colour);
 }
-.riskMenuDisplay {
+#riskMenuDisplay {
 	width: calc(var(--risk-width) - var(--margin));
 	height: calc(var(--risk-height));
 	
 	position: fixed;
 	right: calc(var(--margin)*2);
-	top: calc(var(--margin)*1.5 + var(--risk-top-height));
+	top: calc(var(--margin) + var(--risk-top-height));
 	z-index: 12;
     
     background-color: transparent;
@@ -189,7 +189,7 @@ button {
 	
 	position: fixed;
 	right: calc(var(--margin));
-	top: calc(var(--margin)*1.5 + var(--risk-top-height));
+	top: calc(var(--margin) + var(--risk-top-height));
 	z-index: 14;
     
     background-color: var(--risk-colour);

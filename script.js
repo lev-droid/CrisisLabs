@@ -2,6 +2,7 @@ var cFrame = 0; // The current frame.
 
 var GraphContext;
 var Graph;
+var GraphSize = 384;
 
 var riskColourMap = [
 	[153, 153, 255],
@@ -23,9 +24,8 @@ var riskColourRGB = [153, 153, 255];
 var oldColourRGB = [153, 153, 255];
 var newColourRGB = [153, 153, 255];
 
-const GRAPHSIZE = 384;
 const BORDERTHICKNESS = 4;
-const FPS = 30; // Determines frame rate, for animations and such.
+const FPS = 60; // Determines frame rate, for animations and such.
 
 
 var AnimationQueue = []; // Array of queued animations.
@@ -49,7 +49,6 @@ class Animation // The eternal animation class. I just can't seem to escape it, 
 	
 	Run(sFrame) // Makes this animation run on frame sFrame.
 	{
-		console.log(this.Name);
 		if (!this.Queued) // If this animation is already being run, it doesn't need to be run again.
 		{
 			// Clone this animation.
@@ -57,7 +56,6 @@ class Animation // The eternal animation class. I just can't seem to escape it, 
 			nAnim.PerFrame = this.PerFrame;
 			nAnim.LastFrame = this.LastFrame;
 			
-			console.log(this.PerFrame);
 			nAnim.Length = this.Length;
 			nAnim.Base = this;
 			
@@ -77,17 +75,16 @@ function AnimationManager()
 	for (var i = 0; i < AnimationQueue.length; i++) 
 	{
 		cAnimation = AnimationQueue[i];
-		if (cFrame >= cAnimation.StartFrame) // If the animation should be running...
-		{
-			cAnimation.PerFrame(cFrame - cAnimation.StartFrame); // Run it.
-		}
-		
+
 		if (cFrame >= cAnimation.StartFrame + cAnimation.Length) // If the animation should be over...
 		{
 			cAnimation.LastFrame(); // Run its 'last frame' animation,
-			cAnimation.Base.Queued = false; // Allow the animation to be run again.
+			cAnimation.Base.Queued = false; // Allow the base animation to be run again,
 			cAnimation.Base.Instance = null;
-			AnimationQueue.splice(i-1, 1); // and remove it from the queue.
+			AnimationQueue.splice(i, 1); // and remove it from the queue.
+		} else if (cFrame >= cAnimation.StartFrame) // If the animation should be running...
+		{
+			cAnimation.PerFrame(cFrame - cAnimation.StartFrame); // Run it.
 		}
 	}
 }
@@ -100,7 +97,6 @@ function stretchNum(input, min, max, nmin, nmax) // Converts input to its equive
 
 function convertColour(input1, input2, input3)
 {
-	console.log("rgb(" + input1.toString() + ", " + input2.toString() + ", " + input3.toString() + ")");
 	return ("rgb(" + input1.toString() + ", " + input2.toString() + ", " + input3.toString() + ")");
 }
 
@@ -163,13 +159,13 @@ function changeRisk(n)
 		changeText.Run(cFrame+1);
 	}
 }
-const CHANGECOLOURLENGTH = 1;
+const CHANGECOLOURLENGTH = 0.25;
 var root;
 changeColour = new Animation(
 	function(cProgress) {
 		for (var i = 0; i < 3; i++) // Loop through all 3 channels of the colour.
 		{
-			riskColourRGB[i] = stretchNum(Math.sin(stretchNum(cProgress, 0, FPS*CHANGECOLOURLENGTH, Math.PI*2, Math.PI*5/2)), 0, 1, oldColourRGB[i], newColourRGB[i]); // Converts the progress through the animation to progress from one colour to another. Fades in and out according to a sine function.
+			riskColourRGB[i] = stretchNum(Math.sin(stretchNum(cProgress, 0, FPS*CHANGECOLOURLENGTH-1, Math.PI*2, Math.PI*5/2)), 0, 1, oldColourRGB[i], newColourRGB[i]); // Converts the progress through the animation to progress from one colour to another. Fades in and out according to a sine function.
 		}
 		
 		// Update the colour both in the CSS and the rest of the script.
@@ -177,45 +173,43 @@ changeColour = new Animation(
 		root.style.setProperty("--risk-colour", riskColour);
 		
 		// Redraw the graph to display the change in colour.
-		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	},
 	function() {},
 	FPS*CHANGECOLOURLENGTH,
 	"Change Colour"
 );
-const RISKWIDTH = 384;
-const RISKMARGIN = 20;
+var riskWidth = 384;
+var riskOffset = 20;
 var riskMenuTransition;
+var riskMenuDisplay;
 changeText = new Animation(
 	function (cProgress) {
-		console.log(cProgress);
-		riskMenuTransition.style.setProperty("width", (stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH, 0, 0.8) * RISKWIDTH) + "px");
+		riskMenuTransition.style.setProperty("width", Math.sin(stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH-1, Math.PI*2, Math.PI*5/2)) * riskWidth + "px");
 	},
 	function() {
-		console.log("a");
-		//changeText2.Run(cFrame+20 );
+		changeText2.Run(cFrame);
 	},
-	(FPS/2)*CHANGECOLOURLENGTH,
+	FPS/2*CHANGECOLOURLENGTH,
 	"Change Text A"
 );
 changeText2 = new Animation(
 	function (cProgress) {},
 	function() {
-		console.log("b");
-		riskMenuTransition.innerHTML = riskNameMap.upper();
-		changeText3.Run(cFrame+1);
+		riskMenuDisplay.innerHTML = riskNameMap[risk].toUpperCase();
+		changeText3.Run(cFrame);
 	},
-	30,
+	0,
 	"Change Text B"
 );
 changeText3 = new Animation(
 	function (cProgress) {
-		console.log("c");
-		riskMenuTransition.style.setProperty("right", (stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH, 0, 1) * RISKMARGIN) + "px");
+		var cProgressMult = Math.sin(stretchNum(cProgress, 0, FPS/2*CHANGECOLOURLENGTH-1, Math.PI*2, Math.PI*5/2));
+		riskMenuTransition.style.setProperty("right", cProgressMult * riskWidth + riskOffset + "px");
+		riskMenuTransition.style.setProperty("width", (1 - cProgressMult) * riskWidth + "px");
 	},
 	function() {
-		console.log("d");
-		changeText4.Run(cFrame+1);
+		changeText4.Run(cFrame);
 	},
 	FPS/2*CHANGECOLOURLENGTH,
 	"Change Text C"
@@ -223,9 +217,8 @@ changeText3 = new Animation(
 changeText4 = new Animation(
 	function (cProgress) {},
 	function() {
-		console.log("e");
 		riskMenuTransition.style.setProperty("width", 0);
-		riskMenuTransition.style.setProperty("right", RISKMARGIN + "px");
+		riskMenuTransition.style.setProperty("right", riskOffset + "px");
 	},
 	0,
 	"Change Text D"
@@ -285,7 +278,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	for (var i = Math.ceil(metaData[0]); i < metaData[1]; i += 1)
 	{
 		var cColour = "#505050";
-		var nX = stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX);
+		var nX = stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX);
 
 		if (i % vertLinesDistance == 0) {
 			/*ctx.fillStyle = "#ffffff";
@@ -294,7 +287,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 			cColour = "#606060";
 		}
 		
-		drawLine(ctx, cColour, nX, GRAPHMARGINY, nX, GRAPHSIZE-GRAPHMARGINY, GRAPHLINESIZE);
+		drawLine(ctx, cColour, nX, GRAPHMARGINY, nX, GraphSize-GRAPHMARGINY, GRAPHLINESIZE);
 	}
 	
 	// Horizontal lines
@@ -302,12 +295,12 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	for (var i = Math.ceil(metaData[2]); i < metaData[3]; i += 1)
 	{
 		var cColour = "#505050";
-		var nY = stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY);
+		var nY = stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY);
 		
 		if (i % horizLinesDistance == 0) {
 			/*ctx.fillStyle = "#ffffff";
 			ctx.font = "10px Monospace";
-			ctx.fillText(i, GRAPHSIZE-GRAPHMARGINX+(i.toString().length)+3, nY+3);*/
+			ctx.fillText(i, GraphSize-GRAPHMARGINX+(i.toString().length)+3, nY+3);*/
 			cColour = "#606060";
 		}
 		
@@ -315,7 +308,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 			cColour = "#808080";
 		}
 		
-		drawLine(ctx, cColour, GRAPHMARGINX, nY, GRAPHSIZE-GRAPHMARGINX, nY, GRAPHLINESIZE);
+		drawLine(ctx, cColour, GRAPHMARGINX, nY, GraphSize-GRAPHMARGINX, nY, GRAPHLINESIZE);
 	}
 	
 	// old x/y, because drawing lines between points requires the positions of both the current point and the previous one
@@ -324,8 +317,8 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	
 	for (var i = lastData; i > lastData-cDisplayAmount; i--)
 	{
-		var cX = stretchNum(data[i][0], metaData[0], metaData[1], GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX);
-		var cY = stretchNum(data[i][1], metaData[2], metaData[3], GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY);
+		var cX = stretchNum(data[i][0], metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX);
+		var cY = stretchNum(data[i][1], metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY);
 		
 		drawCircle(ctx, colour, cX, cY, GRAPHCIRCLESIZE);
 		
@@ -339,7 +332,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	
 	// Border rectangles, because sometimes lines and points stretch outside the graph but still need to be rendered.
 	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, 0, GRAPHMARGINY);
-	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, GRAPHSIZE-GRAPHMARGINY, GRAPHMARGINY);
+	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, GraphSize-GRAPHMARGINY, GRAPHMARGINY);
 	
 	// This code is a crime against humanity. But alas, there may be no better way of doing this - excluding the utilization of wacky maths that I don't know how to do.
 	// Vertical line labels
@@ -348,7 +341,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		if (i % vertLinesDistance == 0) {
 			ctx.fillStyle = "#ffffff";
 			ctx.font = "10px Monospace";
-			ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX) - (i.toString().length)*3, GRAPHMARGINY-3); 
+			ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX) - (i.toString().length)*3, GRAPHMARGINY-3); 
 		}
 	}
 	
@@ -358,26 +351,26 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		if (i % horizLinesDistance == 0) {
 			ctx.fillStyle = "#ffffff";
 			ctx.font = "10px Monospace";
-			ctx.fillText(i, GRAPHSIZE-GRAPHMARGINX+(i.toString().length)+1, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY)+3);
+			ctx.fillText(i, GraphSize-GRAPHMARGINX+(i.toString().length)+1, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY)+3);
 		}
 	}
 	
 	// Draw zoom bar at bottom
-	drawRectangle(ctx, riskColour, GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINX*2, GRAPHSIZE-GRAPHMARGINY, SCROLLBARY);
-	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX+BORDERTHICKNESS, GRAPHSIZE-GRAPHMARGINX*2-BORDERTHICKNESS*2, GRAPHSIZE-GRAPHMARGINY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2);
-	drawRectangle(ctx, riskColour, GRAPHMARGINX+scrollPosX, GRAPHMARGINX+SCROLLBARX, GRAPHSIZE-GRAPHMARGINY, SCROLLBARY);
+	drawRectangle(ctx, riskColour, GRAPHMARGINX, GraphSize-GRAPHMARGINX*2, GraphSize-GRAPHMARGINY, SCROLLBARY);
+	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX+BORDERTHICKNESS, GraphSize-GRAPHMARGINX*2-BORDERTHICKNESS*2, GraphSize-GRAPHMARGINY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2);
+	drawRectangle(ctx, riskColour, GRAPHMARGINX+scrollPosX, GRAPHMARGINX+SCROLLBARX, GraphSize-GRAPHMARGINY, SCROLLBARY);
 	
 	// Draw zoom bar on left
-	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY, GRAPHSIZE-GRAPHMARGINY*2);
-	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX-SCROLLBARY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2, GRAPHMARGINY+BORDERTHICKNESS, GRAPHSIZE-GRAPHMARGINY*2-BORDERTHICKNESS*2);
+	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY, GraphSize-GRAPHMARGINY*2);
+	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX-SCROLLBARY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2, GRAPHMARGINY+BORDERTHICKNESS, GraphSize-GRAPHMARGINY*2-BORDERTHICKNESS*2);
 	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY+scrollPosY, GRAPHMARGINY+SCROLLBARX);
 	
 	// Draw zoom bar direction guides
 	ctx.fillStyle = riskColour;
 	ctx.font = "40px Monospace";
-	ctx.fillText("+", GRAPHMARGINX-SCROLLBARY-1, GRAPHSIZE-GRAPHMARGINY+25); 
+	ctx.fillText("+", GRAPHMARGINX-SCROLLBARY-1, GraphSize-GRAPHMARGINY+25); 
 	ctx.fillText("-", GRAPHMARGINX-SCROLLBARY, GRAPHMARGINY-2); 
-	ctx.fillText("-", GRAPHSIZE-GRAPHMARGINX, GRAPHSIZE-GRAPHMARGINY+23);
+	ctx.fillText("-", GraphSize-GRAPHMARGINX, GraphSize-GRAPHMARGINY+23);
 }
 
 
@@ -460,14 +453,14 @@ function recieveData() // recieve data from server
 	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
 	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
 
 function unrecieveData()
 {
     data[cData].pop();
     
-    drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
 
 function onLoad() {
@@ -475,24 +468,28 @@ function onLoad() {
 	
 	Graph = document.getElementById("graph");
 	GraphContext = Graph.getContext("2d");
+	GraphSize = Graph.offsetWidth;
 	
 	riskMenuTransition = document.getElementById("riskMenuTransition");
+	riskMenuDisplay = document.getElementById("riskMenuDisplay");
+	riskWidth = document.getElementById("riskMenuBackground").offsetWidth;
+	riskOffset = root.offsetWidth - (riskMenuTransition.offsetLeft + riskMenuTransition.offsetWidth);
 	
 	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
 	document.addEventListener('mouseup', graphMouseUp);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, dataX, scrollValueX, -scrollValueY, scrollValueY);
+	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, dataX, scrollValueX, -scrollValueY, scrollValueY);
 }
 
 
 
 function graphScrollHitboxX(x, y)
 {
-	return ( (x>GRAPHMARGINX) && (x<GRAPHSIZE-GRAPHMARGINX) && (y>GRAPHSIZE-GRAPHMARGINY) && (y<GRAPHSIZE+SCROLLBARY) );
+	return ( (x>GRAPHMARGINX) && (x<GraphSize-GRAPHMARGINX) && (y>GraphSize-GRAPHMARGINY) && (y<GraphSize+SCROLLBARY) );
 }
 function graphScrollHitboxY(x, y)
 {
-	return ( (x>GRAPHMARGINX-SCROLLBARY) && (x<GRAPHMARGINX) && (y>GRAPHMARGINY) && (y<GRAPHSIZE-GRAPHMARGINY) );
+	return ( (x>GRAPHMARGINX-SCROLLBARY) && (x<GRAPHMARGINX) && (y>GRAPHMARGINY) && (y<GraphSize-GRAPHMARGINY) );
 }
 
 var graphDraggingX = false;
@@ -539,12 +536,10 @@ function graphMouseMove(event) {
 	var clientX = event.clientX - bounds.left;
 	var clientY = event.clientY - bounds.top;
 	
-	console.log(clientX);
-	console.log(clientY);
 	if (graphDraggingX)
 	{
 		scrollPosX = clientX - GRAPHMARGINX - SCROLLBARX;
-		var scrollPosXMax = GRAPHSIZE - GRAPHMARGINX*2 - SCROLLBARX*2;
+		var scrollPosXMax = GraphSize - GRAPHMARGINX*2 - SCROLLBARX*2;
 		if (scrollPosX < 0)
 		{
 			scrollPosX = 0;
@@ -554,11 +549,11 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueX = stretchNum(scrollPosX, 0, scrollPosXMax, SCROLLMINX, SCROLLMAXX);
-		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	} else if (graphDraggingY) 
 	{
 		scrollPosY = clientY - GRAPHMARGINY - SCROLLBARX;
-		var scrollPosYMax = GRAPHSIZE - GRAPHMARGINY*2 - SCROLLBARX*2;
+		var scrollPosYMax = GraphSize - GRAPHMARGINY*2 - SCROLLBARX*2;
 		if (scrollPosY < 0)
 		{
 			scrollPosY = 0;
@@ -568,7 +563,7 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, scrollPosYMax, SCROLLMINY, SCROLLMAXY);
-		drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 	}
 }
 
@@ -579,7 +574,7 @@ function graphMouseLeave() {
 
 function changeGraph(newGraph) {
     cData = newGraph;
-    drawGraph(Graph, GraphContext, "#ffffff", GRAPHSIZE, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
 }
 
 window.onload = onLoad;
