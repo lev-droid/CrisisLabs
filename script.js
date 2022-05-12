@@ -468,7 +468,7 @@ function onLoad() {
 	
 	Graph = document.getElementById("graph");
 	GraphContext = Graph.getContext("2d");
-	GraphSize = Graph.offsetWidth;
+	GraphSize = Graph.offsetWidth - parseInt(window.getComputedStyle(root).getPropertyValue("--border"))*2; // bruh why does getpropertyvalue extend the style when setproperty extends the element
 	
 	riskMenuTransition = document.getElementById("riskMenuTransition");
 	riskMenuDisplay = document.getElementById("riskMenuDisplay");

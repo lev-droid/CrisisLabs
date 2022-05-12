@@ -73,8 +73,13 @@ button {
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
 	z-index: 9;
-    
+	
     background-color: var(--risk-colour);
+
+	display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 .graphMenuButton {
 	width: calc(var(--graph-options-width) - var(--border));
@@ -89,6 +94,7 @@ button {
 	/*background-color: var(--background-colour-2);*/
 	background-color: transparent;
 	color: #ffffff;
+	margin: none;
 	border: none;
 	padding: none;
 	transition-duration: 0.2s;
