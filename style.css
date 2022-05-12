@@ -75,11 +75,6 @@ button {
 	z-index: 9;
 	
     background-color: var(--risk-colour);
-
-	display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
 }
 .graphMenuButton {
 	width: calc(var(--graph-options-width) - var(--border));
@@ -94,9 +89,10 @@ button {
 	/*background-color: var(--background-colour-2);*/
 	background-color: transparent;
 	color: #ffffff;
-	margin: none;
-	border: none;
-	padding: none;
+	margin: 0;
+	border: 0;
+	padding: 0;
+	display: inline-block;
 	transition-duration: 0.2s;
 	
 	text-align: center;
