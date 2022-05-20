@@ -1,2 +1,2 @@
 # CrisisLabs
-A crisis labs competition entry 
+A crisis labs phase 2 competition entry 
