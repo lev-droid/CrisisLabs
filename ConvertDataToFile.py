@@ -94,10 +94,8 @@ while len(bitsOfData)>i:
                             smallest=abs(float(valuesTestedEHZ[j]))
                         j+=1
                     valueOutside=False#Tests to see if the smallest+5% is larger than the largest
-                    while len(valuesTestedEHZ)>j:
-                        if largest*1000<smallest*1050:
-                            valueOutside=True
-                        j+=1
+                    if largest*1000<smallest*1050:
+                        valueOutside=True
                     if not valueOutside:
                         EHZBaseData=float(dataTotal/dataCount)#If non of the peices of data is outside that range, then detrend the data
                 else:
@@ -122,10 +120,8 @@ while len(bitsOfData)>i:
                             smallest=float(valuesTestedENE[j])
                         j+=1
                     valueOutside=False
-                    while len(valuesTestedENE)>j:
-                        if largest*1000<smallest*1050:
-                            valueOutside=True
-                        j+=1
+                    if largest*1000<smallest*1050:
+                        valueOutside=True
                     if not valueOutside:
                         ENEBaseData=float(dataTotal/dataCount)
                 else:
@@ -150,10 +146,8 @@ while len(bitsOfData)>i:
                             smallest=float(valuesTestedENZ[j])
                         j+=1
                     valueOutside=False
-                    while len(valuesTestedENZ)>j:
-                        if largest*1000<smallest*1050:
-                            valueOutside=True
-                        j+=1
+                    if largest*1000<smallest*1050:
+                        valueOutside=True
                     if not valueOutside:
                         ENZBaseData=float(dataTotal/dataCount)
                 else:
@@ -178,10 +172,8 @@ while len(bitsOfData)>i:
                             smallest=float(valuesTestedENN[j])
                         j+=1
                     valueOutside=False
-                    while len(valuesTestedENN)>j:
-                        if largest*1000<smallest*1050:
-                            valueOutside=True
-                        j+=1
+                    if largest*1000<smallest*1050:
+                        valueOutside=True
                     if not valueOutside:
                         ENNBaseData=float(dataTotal/dataCount)
                 else:
@@ -197,7 +189,7 @@ while len(bitsOfData)>i:
             currentAverage=''
             dataTotal=0
             dataCount=0
-    elif (i)%(27)!= 1:#If it is a station
+    elif (i)%(27)== 0:#If it is a station
         station=str(bitsOfData[i])
         #Prints the data so far every 100000 EHZ peices of data so we can know if the program is working
         if station=='EHZ':
@@ -206,7 +198,8 @@ while len(bitsOfData)>i:
                 outputFile = open("outputFile.txt", "w")
                 outputFile.write(dataToOutput)
                 outputFile.close()
-    elif (i)%(27)!= 0:
+                print(printer)
+    elif (i)%(27)== 1:
         #Offsets time if time hasnet been defined so far
         if baseTime == "":
             offsetTime=float(bitsOfData[i])
