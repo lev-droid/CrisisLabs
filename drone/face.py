@@ -1,10 +1,6 @@
-from dataclasses import dataclass
-from itertools import count
 import cv2
-import sys
 import face_recognition
 from dataclass import face
-from numpy import std, void
 
 faceCascade=cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 video_capture = cv2.VideoCapture(0)
@@ -33,29 +29,51 @@ class faceHandler:
             faceHandler.count1 +=1
         return(img)
 
+
     def identifyFacefromfile(): 
-        x =0
-        list = [] 
-
+        print("identifying face")
+        x = 0
+        f = open('facelist.txt', 'a')
+        faceHandler.count1 = 4
+        # list of our found faces encodings, hold dataclass objects
+        faceList = []
+        #iterates through the number of found faces
         while x < faceHandler.count1:
-          image = face_recognition.load_image_file(str(faceHandler.count1)+'.jpg')
-          if face_recognition.face_locations(image):
-            new_encoding = face_recognition.face_encodings(image)[0]
-            for value in list.__dict__.iteritems():
-                if value == new_encoding:
-                    break
+            f.write("Starting new iteration of face processing" "w")
+            # loads face that correlates to iteration and sets to var "face"
+            image = face_recognition.load_image_file( str(x) +'.jpg')
+            print("face",x, "is being checked")
+
+            # if a face is found in these images, process it 
+            if face_recognition.face_locations(image):
+                # encode the image
+                new_encoding = face_recognition.face_encodings(image)[0]
+                #check if the face already exists in the list if the list is not empty                
+                if len(faceList) > 0:
+                    for y in faceList:
+                        print("checking face against facelist " + str(y))
+                        results = face_recognition.compare_faces([y.encoding], new_encoding)
+                        if (results[0]):
+                            print("face already exists")
+                            break   
+                    # if the face does not exist, push it to new file
+                    else:
+                        
+                        faceList.append(face(new_encoding, x ))
+                        f.write(" | Unique face found in image, image: " + str(x) + ".jpg")
+                        print("face found!")
+                      
+                    x+=1
+                #if their are no face encodings saved, save first one.
+                else: 
+                    faceList.append(face(new_encoding, x ))
+                    f.write("Unique face found in image, image: " + str(x) + ".jpg")
+                    print("face found!")
+                    x+=1
             else:
-                list.append(face(face_recognition.face_encodings(image)[0],x ))
-
-            x+=1
-
-
-            
-
-                     
-                
-                            
-
+                  x+=1
 
                 
-# When everything is done, release the capture
+
+
+

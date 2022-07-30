@@ -1,6 +1,4 @@
-from ast import Constant
 from pickle import FALSE, TRUE
-from shutil import move
 from face import faceHandler
 from djitellopy import Tello
 import cv2, time
@@ -8,7 +6,7 @@ import geojson
 from shapely.geometry import shape, Point
 
 COORD = Point(41.3016, 174.7761)
-movequeue = [[]]
+movequeue = [[]  ]
 tsunamizone = FALSE
 tello = Tello()
 
