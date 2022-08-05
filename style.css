@@ -25,10 +25,6 @@ body {
 	font-family: "Lato", "sans-serif";
 }
 
-button {
-	position: relative;
-}
-
 .graph {
 	background-color: var(--background-colour-2);
 	width: var(--graph-size);
@@ -77,6 +73,7 @@ button {
     background-color: var(--risk-colour);
 }
 .graphMenuButton {
+	position: relative;
 	width: calc(var(--graph-options-width) - var(--border));
 	height: calc(var(--graph-options-height) / 3);
 	
