@@ -32,17 +32,17 @@ class faceHandler:
             # filter out weak detections by ensuring the `confidence` is
             # greater than the minimum confidence
             
-            if confidence < 0.15:
+            if confidence < 0.25:
                 continue
             # compute the (x, y)-coordinates of the bounding box for the
-            # object
+            # objects
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
             print("[INFO] computing object detections...")
 
             # draw the bounding box of the face along with the associated
             # probability
-            text = "{:.2f}%".format(confidence * 100)
+            text = "{:.2f}% | human".format(confidence * 100)
             y = startY - 10 if startY - 10 > 10 else startY + 10
             cv2.rectangle(img, (startX, startY), (endX, endY),
                 (0, 0, 255), 2)
@@ -50,6 +50,7 @@ class faceHandler:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
             # cv2.imwrite(str(faceHandler.count1)+'.jpg', crop_face) #save the image
+            #since a face has been found, iterate the facehandler count by one.
             faceHandler.count1 +=1
         return(img)
 
