@@ -10,7 +10,7 @@
     
     --border: 4px;
     
-    --graph-options-width: 24px;
+    --graph-options-width: 36px;
     --graph-options-height: 96px;
 	
 	--risk-top-width: 160px;
@@ -73,12 +73,12 @@ button {
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
 	z-index: 9;
-    
+	
     background-color: var(--risk-colour);
 }
 .graphMenuButton {
 	width: calc(var(--graph-options-width) - var(--border));
-	height: calc(var(--graph-options-height) / 3);
+	height: calc(var(--graph-options-height) / 4);
 	
 	position: relative;
 	left: calc(var(--border));
@@ -89,13 +89,15 @@ button {
 	/*background-color: var(--background-colour-2);*/
 	background-color: transparent;
 	color: #ffffff;
-	border: none;
-	padding: none;
+	margin: 0;
+	border: 0;
+	padding: 0;
+	display: inline-block;
 	transition-duration: 0.2s;
 	
 	text-align: center;
 	vertical-align: middle;
-	font-size: 19px;
+	font-size: 16px;
 }
 .graphMenuButton:hover {
 	background-color: #ffffff;
