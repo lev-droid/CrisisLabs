@@ -149,7 +149,7 @@ function drawRectangle(ctx, colour, posX, sizeX, posY, sizeY)
 	ctx.fillRect(posX, posY, sizeX, sizeY);
 }
 
-function changeRisk()
+function changeRisk(n)
 {	
 	if (!changeColour.Queued) // This if statement shouldn't be in the final version, it's just here to make this look nicer.
 	{
