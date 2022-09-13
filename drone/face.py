@@ -2,20 +2,28 @@ import cv2
 import face_recognition
 from dataclass import face
 import numpy as np
+
+# pip install opencv-python | https://pypi.org/project/opencv-python/
+# pip3 install face_recognition | https://github.com/ageitgey/face_recognition
+
 # load our serialized model from disk
 print("[INFO] loading model...")
 net = cv2.dnn.readNetFromCaffe("deploy.prototxt.txt", "res10_300x300_ssd_iter_140000.caffemodel")
-# load the input image and construct an input blob for the image
-# by resizing to a fixed 300x300 pixels and then normalizing it
 faceCascade=cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 video_capture = cv2.VideoCapture(0)
 
-
+# define facehandler class
 class faceHandler:
+    #global iterator for class
     count1 = 0 
+    #variable to store init face encoding
     my_face_encoding = [None]
+    #findface method.
     def findFace(img):
-        # Capture frame-by-frame        
+        # Capture frame-by-frame    
+        # load the input frame and construct an input blob for the image
+        # by resizing to a fixed 300x300 pixels and then normalizing it
+    
         blob = cv2.dnn.blobFromImage(cv2.resize(img, (300, 300)), 1.0,
             (300, 300), (104.0, 177.0, 123.0))
         (h, w) = img.shape[:2]
@@ -49,7 +57,7 @@ class faceHandler:
             cv2.putText(img, text, (startX, y),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
-            # cv2.imwrite(str(faceHandler.count1)+'.jpg', crop_face) #save the image
+            cv2.imwrite(str(faceHandler.count1)+'.jpg', img) #save the image
             #since a face has been found, iterate the facehandler count by one.
             faceHandler.count1 +=1
         return(img)
@@ -82,8 +90,7 @@ class faceHandler:
                             print("face already exists")
                             break   
                     # if the face does not exist, push it to new file
-                    else:
-                        
+                    else:   
                         faceList.append(face(new_encoding, x ))
                         f.write(" | Unique face found in image, image: " + str(x) + ".jpg")
                         print("face found!")
