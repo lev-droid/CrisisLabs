@@ -10,7 +10,7 @@
     
     --border: 4px;
     
-    --graph-options-width: 24px;
+    --graph-options-width: 36px;
     --graph-options-height: 96px;
 	
 	--risk-top-width: 160px;
@@ -23,6 +23,10 @@
 body {
 	background-color: var(--background-colour);
 	font-family: "Lato", "sans-serif";
+}
+
+button {
+	position: relative;
 }
 
 .graph {
@@ -73,9 +77,8 @@ body {
     background-color: var(--risk-colour);
 }
 .graphMenuButton {
-	position: relative;
 	width: calc(var(--graph-options-width) - var(--border));
-	height: calc(var(--graph-options-height) / 3);
+	height: calc(var(--graph-options-height) / 4);
 	
 	position: relative;
 	left: calc(var(--border));
@@ -94,7 +97,7 @@ body {
 	
 	text-align: center;
 	vertical-align: middle;
-	font-size: 19px;
+	font-size: 16px;
 }
 .graphMenuButton:hover {
 	background-color: #ffffff;

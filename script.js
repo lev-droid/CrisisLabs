@@ -4,6 +4,8 @@ var GraphContext;
 var Graph;
 var GraphSize = 384;
 
+var lastID = 0;
+
 var riskColourMap = [
 	[153, 153, 255],
 	[210, 222, 42],
@@ -29,11 +31,10 @@ const FPS = 60; // Determines frame rate, for animations and such.
 
 
 var AnimationQueue = []; // Array of queued animations.
-class Animation // The eternal animation class. I just can't seem to escape it, no matter what language I run to.
+class Animation
 {
 	constructor(func, finalFunc, length, name) 
 	{
-		// With the implementation of a 'last frame' function, the seperate 'frame' class has become entirely unneccesary; each animation can simply start running another when it ends.
 		this.PerFrame = func;
 		this.LastFrame = finalFunc;
 		
@@ -98,6 +99,12 @@ function stretchNum(input, min, max, nmin, nmax) // Converts input to its equive
 function convertColour(input1, input2, input3)
 {
 	return ("rgb(" + input1.toString() + ", " + input2.toString() + ", " + input3.toString() + ")");
+}
+
+// should work for what the thing i need it for, but it wont handle negatives very well (also it's stolen from StackOverflow)
+function NearestLogTen(x)
+{
+	return (Math.pow(10, Math.floor(Math.log10(x))));
 }
 
 
@@ -173,7 +180,7 @@ changeColour = new Animation(
 		root.style.setProperty("--risk-colour", riskColour);
 		
 		// Redraw the graph to display the change in colour.
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 	},
 	function() {},
 	FPS*CHANGECOLOURLENGTH,
@@ -227,7 +234,7 @@ changeText4 = new Animation(
 
 
 
-const GRAPHCIRCLESIZE = 2;
+const GRAPHCIRCLESIZE = 0;
 const GRAPHLINESIZE = 1;
 
 const GRAPHMARGINX = 30;
@@ -235,8 +242,12 @@ const GRAPHMARGINY = 30;
 
 const GRAPHBACKGROUND = "#3c3c3c"
 
-function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
-{	
+function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, minX)
+{
+	if (data.length < 3) 
+	{
+		return;
+	}
 	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, 0, size);
 	var cDisplayAmount = displayAmount;
 	if (displayAmount > data.length)
@@ -244,13 +255,13 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		cDisplayAmount = data.length;
 	}
 	
-	var lastData = data.length-1; // just a slight optimization
-	var tempData = data[lastData]; // another slight optimization
+	var lastData = data.length-1;
+	var tempData = data[lastData];
 	
 	var metaData = [tempData[0], tempData[1], minY, maxY];
 	
 	// calculates the minimum and maximum values of the graph it's trying to display
-	for (var i = lastData; i > lastData-cDisplayAmount; i--) // as painful as it is to do the same loop twice, there probably isn't any way to combine them, or to calculate this stuff less often
+	for (var i = lastData; i > lastData-cDisplayAmount; i--)
 	{
 		// this is terribly inefficient, but i gotta do this somehow, and i cant think of a better way
 		if (data[i][0] < metaData[0])
@@ -260,49 +271,54 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 		{
 			metaData[1] = data[i][0];
 		}
-		
-		/*if (data[i][1] < metaData[2])
-		{
-			metaData[2] = data[i][1];
-		} else if (data[i][1] > metaData[3])
-		{
-			metaData[3] = data[i][1];
-		}*/
 	}
 	//var metaData = [0, 60, 0, 20];
 	
 	// Draw grid background
 	
 	// Vertical lines
-	var vertLinesDistance = Math.ceil(cDisplayAmount/15); // Distance between labels on vertical lines, in units
-	for (var i = Math.ceil(metaData[0]); i < metaData[1]; i += 1)
+	var vertLinesRound = NearestLogTen(tempData[0])/10;
+	var vertLinesDistance = vertLinesRound; //Math.floor( (cDisplayAmount/(80-((Math.floor(tempData[0])).toString().length*10)))*vertLinesRound )/vertLinesRound; // Distance between labels on vertical lines, in units
+	console.log("vertLinesDistance: " + vertLinesDistance);
+	var vertLinesStart = Math.ceil(metaData[0]*vertLinesRound)/vertLinesRound;
+	console.log("vertLinesStart: " + vertLinesStart);
+	console.log("metaData[1]: " + metaData[1]);
+	for (var i = vertLinesStart; i < metaData[1]; i += vertLinesDistance)
 	{
 		var cColour = "#505050";
 		var nX = stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX);
 
-		if (i % vertLinesDistance == 0) {
-			/*ctx.fillStyle = "#ffffff";
-			ctx.font = "10px Monospace";
-			ctx.fillText(i, nX - (i.toString().length)*3, GRAPHMARGINY-5);*/
+		/*if (i % vertLinesDistance == 0) {
 			cColour = "#606060";
-		}
+		}*/
 		
 		drawLine(ctx, cColour, nX, GRAPHMARGINY, nX, GraphSize-GRAPHMARGINY, GRAPHLINESIZE);
 	}
 	
+	console.log("-------------------");
+	
 	// Horizontal lines
-	var horizLinesDistance = Math.ceil((maxY-minY)/40); // Distance between labels on horizontal lines, in units
-	for (var i = Math.ceil(metaData[2]); i < metaData[3]; i += 1)
+	var horizLinesRound = NearestLogTen(metaData[3])/10;
+	var horizLinesRound2 = NearestLogTen(maxY-minY)/10;
+	console.log("horizLinesRound: " + horizLinesRound);
+	console.log("horizLinesRound2: " + horizLinesRound2);
+	var horizLinesDistance = horizLinesRound; //Math.floor( (maxY-minY)/(40-((Math.floor(metaData[3])).toString().length*10))/horizLinesRound2 )*horizLinesRound2; // Distance between labels on horizontal lines, in units
+	console.log("horizLinesDistance: " + horizLinesDistance);
+	var horizLinesStart = Math.ceil(metaData[2]/horizLinesRound)*horizLinesRound;
+	console.log("horizLinesStart: " + horizLinesStart);
+	console.log("metaData[3]: " + metaData[3]);
+	
+	
+	console.log("------------------------------------");
+	
+	for (var i = horizLinesStart; i < metaData[3]; i += horizLinesDistance)
 	{
 		var cColour = "#505050";
 		var nY = stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY);
 		
-		if (i % horizLinesDistance == 0) {
-			/*ctx.fillStyle = "#ffffff";
-			ctx.font = "10px Monospace";
-			ctx.fillText(i, GraphSize-GRAPHMARGINX+(i.toString().length)+3, nY+3);*/
+		/*if (i % horizLinesDistance == 0) {
 			cColour = "#606060";
-		}
+		}*/
 		
 		if (i == 0) {
 			cColour = "#808080";
@@ -334,25 +350,21 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, 0, GRAPHMARGINY);
 	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, GraphSize-GRAPHMARGINY, GRAPHMARGINY);
 	
-	// This code is a crime against humanity. But alas, there may be no better way of doing this - excluding the utilization of wacky maths that I don't know how to do.
 	// Vertical line labels
-	for (var i = Math.ceil(metaData[0]); i < metaData[1]; i += 1)
+	for (var i = vertLinesStart; i < metaData[1]; i += vertLinesDistance)
 	{
-		if (i % vertLinesDistance == 0) {
-			ctx.fillStyle = "#ffffff";
-			ctx.font = "10px Monospace";
-			ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX) - (i.toString().length)*3, GRAPHMARGINY-3); 
-		}
+		ctx.fillStyle = "#ffffff";
+		ctx.font = "10px Monospace";
+		//var j = Math.floor(i);
+		ctx.fillText(i, stretchNum(i, metaData[0], metaData[1], GRAPHMARGINX, GraphSize-GRAPHMARGINX) - (i.toString().length*2.5), GRAPHMARGINY-3); 
 	}
 	
 	// Horizontal line labels
-	for (var i = Math.ceil(metaData[2]); i < metaData[3]; i += 1)
+	for (var i = horizLinesStart; i < metaData[3]; i += horizLinesDistance)
 	{		
-		if (i % horizLinesDistance == 0) {
-			ctx.fillStyle = "#ffffff";
-			ctx.font = "10px Monospace";
-			ctx.fillText(i, GraphSize-GRAPHMARGINX+(i.toString().length)+1, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY)+3);
-		}
+		ctx.fillStyle = "#ffffff";
+		ctx.font = "10px Monospace";
+		ctx.fillText(i, GraphSize-GRAPHMARGINX+1, stretchNum(i, metaData[2], metaData[3], GRAPHMARGINY, GraphSize-GRAPHMARGINY)+3);
 	}
 	
 	// Draw zoom bar at bottom
@@ -375,63 +387,17 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY)
 
 
 
-var dataX = [
-	[Math.random()*0.5+0.5, Math.random()*20-10],
-	[Math.random()*0.5+1.5, Math.random()*20-10],
-	[Math.random()*0.5+2.5, Math.random()*20-10],
-	[Math.random()*0.5+3.5, Math.random()*20-10],
-	[Math.random()*0.5+4.5, Math.random()*20-10],
-	[Math.random()*0.5+5.5, Math.random()*20-10],
-	[Math.random()*0.5+6.5, Math.random()*20-10],
-	[Math.random()*0.5+7.5, Math.random()*20-10],
-	[Math.random()*0.5+8.5, Math.random()*20-10],
-	[Math.random()*0.5+9.5, Math.random()*20-10],
-	[Math.random()*0.5+10.5, Math.random()*20-10],
-	[Math.random()*0.5+11.5, Math.random()*20-10],
-	[Math.random()*0.5+12.5, Math.random()*20-10],
-	[Math.random()*0.5+13.5, Math.random()*20-10],
-	[Math.random()*0.5+14.5, Math.random()*20-10],
-	[Math.random()*0.5+15.5, Math.random()*20-10]
-];
-var dataY = [
-	[Math.random()*0.5+0.5, Math.random()*20-10],
-	[Math.random()*0.5+1.5, Math.random()*20-10],
-	[Math.random()*0.5+2.5, Math.random()*20-10],
-	[Math.random()*0.5+3.5, Math.random()*20-10],
-	[Math.random()*0.5+4.5, Math.random()*20-10],
-	[Math.random()*0.5+5.5, Math.random()*20-10],
-	[Math.random()*0.5+6.5, Math.random()*20-10],
-	[Math.random()*0.5+7.5, Math.random()*20-10],
-	[Math.random()*0.5+8.5, Math.random()*20-10],
-	[Math.random()*0.5+9.5, Math.random()*20-10],
-	[Math.random()*0.5+10.5, Math.random()*20-10],
-	[Math.random()*0.5+11.5, Math.random()*20-10],
-	[Math.random()*0.5+12.5, Math.random()*20-10],
-	[Math.random()*0.5+13.5, Math.random()*20-10],
-	[Math.random()*0.5+14.5, Math.random()*20-10],
-	[Math.random()*0.5+15.5, Math.random()*20-10]
-];
-var dataZ = [
-	[Math.random()*0.5+0.5, Math.random()*20-10],
-	[Math.random()*0.5+1.5, Math.random()*20-10],
-	[Math.random()*0.5+2.5, Math.random()*20-10],
-	[Math.random()*0.5+3.5, Math.random()*20-10],
-	[Math.random()*0.5+4.5, Math.random()*20-10],
-	[Math.random()*0.5+5.5, Math.random()*20-10],
-	[Math.random()*0.5+6.5, Math.random()*20-10],
-	[Math.random()*0.5+7.5, Math.random()*20-10],
-	[Math.random()*0.5+8.5, Math.random()*20-10],
-	[Math.random()*0.5+9.5, Math.random()*20-10],
-	[Math.random()*0.5+10.5, Math.random()*20-10],
-	[Math.random()*0.5+11.5, Math.random()*20-10],
-	[Math.random()*0.5+12.5, Math.random()*20-10],
-	[Math.random()*0.5+13.5, Math.random()*20-10],
-	[Math.random()*0.5+14.5, Math.random()*20-10],
-	[Math.random()*0.5+15.5, Math.random()*20-10]
-];
+var cData = "'EHZ'0";
+var data = [];
+data["'EHZ'0"] = [];
+data["'ENZ'0"] = [];
+data["'ENE'0"] = [];
+data["'ENN'0"] = [];
+data["'EHZ'1"] = [];
+data["'ENZ'1"] = [];
+data["'ENE'1"] = [];
+data["'ENN'1"] = [];
 
-var cData = 0;
-var data = [dataX, dataY, dataZ];
 
 
 
@@ -442,25 +408,16 @@ function requestData() // request data from server
 
 function recieveData() // recieve data from server
 {
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
-	data[cData].push([Math.random()*0.5+data[cData].length+0.5, Math.random()*20-10]);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+	
+	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 }
 
 function unrecieveData()
 {
     data[cData].pop();
     
-    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 }
 
 function onLoad() {
@@ -476,9 +433,11 @@ function onLoad() {
 	riskOffset = root.offsetWidth - (riskMenuTransition.offsetLeft + riskMenuTransition.offsetWidth);
 	
 	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
+	setInterval(RequestData, 250); // Check for new data every 0.25 seconds
+	setInterval(RequestRisk, 250); // Check for new risk level every 0.25 seconds
 	document.addEventListener('mouseup', graphMouseUp);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, dataX, scrollValueX, -scrollValueY, scrollValueY);
+	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 }
 
 
@@ -513,11 +472,11 @@ function graphMouseUp(event) {
 	graphDraggingY = false;
 }
 
-const SCROLLMINX = 5;
-const SCROLLMAXX = 150;
+const SCROLLMINX = 100;
+const SCROLLMAXX = 10000;
 
-const SCROLLMINY = 5;
-const SCROLLMAXY = 120;
+const SCROLLMINY = 0.005;
+const SCROLLMAXY = 2;
 
 const SCROLLBARX = 32; // Size of scroll bars (parallel to nearest graph edge)
 const SCROLLBARY = 24; // Size of scroll bars (perpendicular to nearest graph edge)
@@ -527,6 +486,8 @@ var maxY = 40;
 
 var scrollPosX = 0;
 var scrollValueX = SCROLLMINX;
+
+var scrollValueXMin = 0;
 
 var scrollPosY = 0;
 var scrollValueY = SCROLLMAXY;
@@ -549,7 +510,7 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueX = stretchNum(scrollPosX, 0, scrollPosXMax, SCROLLMINX, SCROLLMAXX);
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 	} else if (graphDraggingY) 
 	{
 		scrollPosY = clientY - GRAPHMARGINY - SCROLLBARX;
@@ -563,7 +524,7 @@ function graphMouseMove(event) {
 		}
 		
 		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, scrollPosYMax, SCROLLMINY, SCROLLMAXY);
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 	}
 }
 
@@ -573,8 +534,92 @@ function graphMouseLeave() {
 }
 
 function changeGraph(newGraph) {
-    cData = newGraph;
-    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY);
+    cData = newGraph.replaceAll("/QUOTE/", "'");
+    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
 }
 
 window.onload = onLoad;
+
+
+// NOTE: Clean this up before submitting
+
+function loadData(rawData)
+{
+    rawData.split('~').forEach(function(nData)
+	{
+		//console.log(nData);
+		if (nData != "")
+		{
+			nData = nData.split(',');
+			//console.log(nData[0]);
+			data[nData[0]].push([parseFloat(nData[1]), parseFloat(nData[2])]);
+		}
+	});
+}
+
+var DataReader = new FileReader();
+var RiskReader = new FileReader();
+function RequestData() 
+{
+	fetch("http://localhost:4000/data", { //" 192.168.1.16:4000/data", { //161.29.209.219
+		headers: {
+			"id": lastID
+		}
+	})
+	.then((response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		return response.blob();
+	})
+	.then((response) => {
+		DataReader.readAsText(response);
+	});
+}
+
+function RequestRisk() 
+{
+	fetch("http://192.168.1.16:4000/risk", { //161.29.209.219
+		headers: {
+			"id": lastID
+		}
+	})
+	.then((response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		return response.blob();
+	})
+	.then((response) => {
+		RiskReader.readAsText(response);
+	});
+}
+
+DataReader.addEventListener('load', () => {
+	var arr = DataReader.result.split('|');
+	lastID = parseInt(arr[arr.length-2]); // lazy but should work (for now)
+	
+	var str = "";
+	for (var i = 0; i < arr.length-1; i += 2)
+	{
+		str += arr[i];
+	}
+	
+	//console.log(arr);
+	//console.log(arr[arr.length-2]);
+	//console.log(str);
+	loadData(str);
+	
+	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+});
+
+RiskReader.addEventListener('load', () => {
+	var nRisk = parseInt(RiskReader.result);
+	//console.log(RiskReader.result);
+	//console.log(nRisk);
+	if ((nRisk != null) && (nRisk != risk)) {
+		changeRisk(nRisk);
+	}
+});

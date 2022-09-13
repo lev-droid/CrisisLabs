@@ -14,20 +14,12 @@
 		
 		<div class="graphMenuTop"></div>
         <div class="graphMenu">
-            <button class="graphMenuButton" onclick="changeGraph(0);">X</button>
-            <button class="graphMenuButton" onclick="changeGraph(1);">Y</button> 
-            <button class="graphMenuButton" onclick="changeGraph(2);">Z</button>
+            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/0");'>EHZ</button>
+            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENZ/QUOTE/0");'>ENZ</button>
+            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENN/QUOTE/0");'>ENN</button>
+            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENE/QUOTE/0");'>ENE</button>
         </div>
 		<div class="graphMenuBottom"></div>
-	
-		<button onclick="recieveData()">Recieve Data</button>
-        <button onclick="unrecieveData()">Unrecieve Data</button>
-		
-		<button onclick="changeRisk(0);">Low Risk</button>
-		<button onclick="changeRisk(1);">Medium Risk</button>
-		<button onclick="changeRisk(2);">High Risk</button>
-		<button onclick="changeRisk(3);">Imminent</button>
-		<button onclick="changeRisk(4);">Ongoing</button>
 		
 		<!-- these have ids instead of classes so i can script them -->
 		<div id="riskMenu"> 
@@ -38,9 +30,6 @@
 			<div id="riskMenuBackgroundTriangle"></div>
 			<div id="riskMenuTransition"></div>
 		</div>
-		<?php
-			echo "My first PHP script!";
-		?>
         
 
 	</body>
