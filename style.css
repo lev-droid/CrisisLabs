@@ -29,12 +29,20 @@ button {
 	position: relative;
 }
 
+#graphContainer {
+	position: fixed;
+	top: calc(var(--margin) + var(--graph-size));
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
 .graph {
 	background-color: var(--background-colour-2);
 	width: var(--graph-size);
 	height: var(--graph-size);
     
-    position: fixed;
+    position: absolute;
     right: var(--margin);
     top: calc(var(--margin)*2 + var(--risk-top-height) + var(--risk-height));
 	
@@ -45,7 +53,7 @@ button {
     width: 0;
     height: 0;
     
-    position: fixed;
+    position: absolute;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2 - var(--graph-options-width));
     
@@ -57,7 +65,7 @@ button {
     width: 0;
     height: 0;
     
-    position: fixed;
+    position: absolute;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 + var(--graph-options-height)/2);
     
@@ -69,7 +77,7 @@ button {
     width: var(--graph-options-width);
     height: calc(var(--graph-options-height));
     
-    position: fixed;
+    position: absolute;
     right: calc(var(--margin) + var(--graph-size) + var(--border)*2);
     top: calc((var(--margin)*2 + var(--risk-top-height) + var(--risk-height)) + var(--graph-size)/2 - var(--graph-options-height)/2);
 	z-index: 9;
@@ -195,4 +203,193 @@ button {
 	z-index: 14;
     
     background-color: var(--risk-colour);
+}
+
+
+
+
+
+#login {
+	width: 100%;
+	height: 100%;
+	
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 100;
+	
+	opacity: 1;
+	background-color: var(--background-colour);
+}
+#login2 {
+	width: 100%;
+	height: calc(256px + var(--border)*2);
+	
+	position: fixed;
+	right: 0;
+	top: calc(50% - (96px + var(--border)));
+	z-index: 100;
+	
+	background-color: var(--risk-colour);
+}
+.login3 {
+	width: 100%;
+	height: 256px;
+	
+	position: absolute;
+	right: 0;
+	top: calc(var(--border));
+	z-index: 100;
+	
+	background-color: var(--background-colour-2);
+}
+
+
+.loginImage {
+	width: 305px;
+	height: 91px;
+	
+	position: absolute;
+	right: calc(50% - 152.5px);
+	top: var(--margin);
+	z-index: 110;
+}
+.loginLabel {
+	font-family: "Lato", "sans-serif";
+	font-size: 24px;
+	color: var(--risk-colour);
+	margin-right: 8px;
+	position: relative;
+}
+.loginInput[type=text] {
+	font-family: "Lato", "sans-serif";
+	font-size: 24px;
+	border: var(--border) solid var(--risk-colour);
+	color: var(--risk-colour);
+	background-color: var(--background-colour);
+	transition: 0.1s ease-in-out;
+}
+.loginInput[type=text]:focus {
+	background-color: var(--risk-colour);
+	color: #ffffff;
+}
+
+.loginIP {
+	width: 33.5%;
+	height: calc(101px - var(--margin)*2);
+	
+	position: absolute;
+	left: 0;
+	top: calc(91px + var(--margin));
+	
+	display: flex;
+	align-items: center;
+	justify-content: right;
+}
+
+.loginPort {
+	width: 33%;
+	height: calc(101px - var(--margin)*2);
+	
+	position: absolute;
+	right: 33.5%;
+	top: calc(91px + var(--margin));
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.loginPW {
+	width: 33.5%;
+	height: calc(101px - var(--margin)*2);
+	
+	position: absolute;
+	right: 0;
+	top: calc(91px + var(--margin));
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+#loginButton {
+	width: 128px;
+	height: 48px;
+	
+	position: absolute;
+	right: calc(50% - 64px);
+	top: calc(100% - 64px - var(--margin));
+	
+	border: 0px;
+	font-family: "Lato", "sans-serif";
+	font-size: 32px;
+	color: #ffffff;
+	background-color: var(--risk-colour);
+	transition: 0.1s ease-in-out;
+}
+#loginButton:hover {
+	background-color: #ffffff;
+	color: var(--risk-colour);
+}
+#loginText {
+	width: 100%;
+	height: 12px;
+	
+	position: absolute;
+	right: 0;
+	bottom: calc(var(--margin));
+	
+	border: 0px;
+	margin: 0px;
+	font-family: "Lato", "sans-serif";
+	font-size: 10px;
+	text-align: center;
+	color: var(--risk-colour);
+}
+
+
+
+.adminLabel {
+	font-family: "Lato", "sans-serif";
+	font-size: 16px;
+	color: var(--risk-colour);
+	justify-content: right;
+	margin-right: 4px;
+	position: relative;
+}
+.adminInput[type=text] {
+	font-family: "Lato", "sans-serif";
+	font-size: 16px;
+	border: var(--border) solid var(--risk-colour);
+	color: var(--risk-colour);
+	background-color: var(--background-colour);
+	transition: 0.1s ease-in-out;
+}
+.adminInput[type=text]:focus {
+	background-color: var(--risk-colour);
+	color: #ffffff;
+}
+.adminButton {
+	width: 64px;
+	height: 32px;
+	
+	border: 0px;
+	font-family: "Lato", "sans-serif";
+	font-size: 16px;
+	color: #ffffff;
+	background-color: var(--risk-colour);
+	transition: 0.1s ease-in-out;
+}
+.adminButton:hover {
+	background-color: #ffffff;
+	color: var(--risk-colour);
+}
+
+#admin {
+	position: fixed;
+	left: var(--margin);
+	top: var(--margin);
+	border: var(--border) solid var(--risk-colour);
+	background-color: var(--background-colour-2);
 }

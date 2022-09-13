@@ -1,24 +1,20 @@
 var cFrame = 0; // The current frame.
 
-var GraphContext;
-var Graph;
+var GraphContext = [];
+var Graph = [];
 var GraphSize = 384;
 
 var lastID = 0;
 
 var riskColourMap = [
 	[153, 153, 255],
-	[210, 222, 42],
 	[237, 183, 21],
-	[230, 122, 39],
 	[235, 56, 28]
 ];
 var riskNameMap = [
-	"Low Risk",
-	"Medium Risk",
-	"High Risk",
-	"Imminent",
-	"Ongoing"
+	"None",
+	"Potential",
+	"Confirmed"
 ];
 var risk = 0;
 var riskColour = "rgb(153, 153, 255)";
@@ -153,7 +149,7 @@ function drawRectangle(ctx, colour, posX, sizeX, posY, sizeY)
 	ctx.fillRect(posX, posY, sizeX, sizeY);
 }
 
-function changeRisk(n)
+function changeRisk()
 {	
 	if (!changeColour.Queued) // This if statement shouldn't be in the final version, it's just here to make this look nicer.
 	{
@@ -180,7 +176,10 @@ changeColour = new Animation(
 		root.style.setProperty("--risk-colour", riskColour);
 		
 		// Redraw the graph to display the change in colour.
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+		for (var i = 0; i < GraphContext.length; i++)
+		{
+			drawGraph(i, "#ffffff", GraphSize, data[cData[i]], scrollValueX[i], -scrollValueY[i], scrollValueY[i], scrollValueXMin);
+		}
 	},
 	function() {},
 	FPS*CHANGECOLOURLENGTH,
@@ -242,12 +241,16 @@ const GRAPHMARGINY = 30;
 
 const GRAPHBACKGROUND = "#3c3c3c"
 
-function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, minX)
+function drawGraph(id, colour, size, data, displayAmount, minY, maxY, minX)
 {
+	// lazy
 	if (data.length < 3) 
 	{
 		return;
 	}
+	
+	var ctx = GraphContext[id];
+	
 	drawRectangle(ctx, GRAPHBACKGROUND, 0, size, 0, size);
 	var cDisplayAmount = displayAmount;
 	if (displayAmount > data.length)
@@ -263,7 +266,7 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, mi
 	// calculates the minimum and maximum values of the graph it's trying to display
 	for (var i = lastData; i > lastData-cDisplayAmount; i--)
 	{
-		// this is terribly inefficient, but i gotta do this somehow, and i cant think of a better way
+		// this seems terribly inefficient, but i gotta do this somehow, and i cant think of a better way
 		if (data[i][0] < metaData[0])
 		{
 			metaData[0] = data[i][0];
@@ -276,13 +279,14 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, mi
 	
 	// Draw grid background
 	
+	// NOTE: Fix graph (its wierd and buggy, that may be vague but you seriously GOTTA do this)
 	// Vertical lines
 	var vertLinesRound = NearestLogTen(tempData[0])/10;
 	var vertLinesDistance = vertLinesRound; //Math.floor( (cDisplayAmount/(80-((Math.floor(tempData[0])).toString().length*10)))*vertLinesRound )/vertLinesRound; // Distance between labels on vertical lines, in units
-	console.log("vertLinesDistance: " + vertLinesDistance);
+	//console.log("vertLinesDistance: " + vertLinesDistance);
 	var vertLinesStart = Math.ceil(metaData[0]*vertLinesRound)/vertLinesRound;
-	console.log("vertLinesStart: " + vertLinesStart);
-	console.log("metaData[1]: " + metaData[1]);
+	//console.log("vertLinesStart: " + vertLinesStart);
+	//console.log("metaData[1]: " + metaData[1]);
 	for (var i = vertLinesStart; i < metaData[1]; i += vertLinesDistance)
 	{
 		var cColour = "#505050";
@@ -295,21 +299,21 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, mi
 		drawLine(ctx, cColour, nX, GRAPHMARGINY, nX, GraphSize-GRAPHMARGINY, GRAPHLINESIZE);
 	}
 	
-	console.log("-------------------");
+	//console.log("-------------------");
 	
 	// Horizontal lines
 	var horizLinesRound = NearestLogTen(metaData[3])/10;
 	var horizLinesRound2 = NearestLogTen(maxY-minY)/10;
-	console.log("horizLinesRound: " + horizLinesRound);
-	console.log("horizLinesRound2: " + horizLinesRound2);
+	//console.log("horizLinesRound: " + horizLinesRound);
+	//console.log("horizLinesRound2: " + horizLinesRound2);
 	var horizLinesDistance = horizLinesRound; //Math.floor( (maxY-minY)/(40-((Math.floor(metaData[3])).toString().length*10))/horizLinesRound2 )*horizLinesRound2; // Distance between labels on horizontal lines, in units
-	console.log("horizLinesDistance: " + horizLinesDistance);
+	//console.log("horizLinesDistance: " + horizLinesDistance);
 	var horizLinesStart = Math.ceil(metaData[2]/horizLinesRound)*horizLinesRound;
-	console.log("horizLinesStart: " + horizLinesStart);
-	console.log("metaData[3]: " + metaData[3]);
+	//console.log("horizLinesStart: " + horizLinesStart);
+	//console.log("metaData[3]: " + metaData[3]);
 	
 	
-	console.log("------------------------------------");
+	//console.log("------------------------------------");
 	
 	for (var i = horizLinesStart; i < metaData[3]; i += horizLinesDistance)
 	{
@@ -370,12 +374,12 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, mi
 	// Draw zoom bar at bottom
 	drawRectangle(ctx, riskColour, GRAPHMARGINX, GraphSize-GRAPHMARGINX*2, GraphSize-GRAPHMARGINY, SCROLLBARY);
 	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX+BORDERTHICKNESS, GraphSize-GRAPHMARGINX*2-BORDERTHICKNESS*2, GraphSize-GRAPHMARGINY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2);
-	drawRectangle(ctx, riskColour, GRAPHMARGINX+scrollPosX, GRAPHMARGINX+SCROLLBARX, GraphSize-GRAPHMARGINY, SCROLLBARY);
+	drawRectangle(ctx, riskColour, GRAPHMARGINX+scrollPosX[id], GRAPHMARGINX+SCROLLBARX, GraphSize-GRAPHMARGINY, SCROLLBARY);
 	
 	// Draw zoom bar on left
 	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY, GraphSize-GRAPHMARGINY*2);
 	drawRectangle(ctx, GRAPHBACKGROUND, GRAPHMARGINX-SCROLLBARY+BORDERTHICKNESS, SCROLLBARY-BORDERTHICKNESS*2, GRAPHMARGINY+BORDERTHICKNESS, GraphSize-GRAPHMARGINY*2-BORDERTHICKNESS*2);
-	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY+scrollPosY, GRAPHMARGINY+SCROLLBARX);
+	drawRectangle(ctx, riskColour, GRAPHMARGINX-SCROLLBARY, SCROLLBARY, GRAPHMARGINY+scrollPosY[id], GRAPHMARGINY+SCROLLBARX);
 	
 	// Draw zoom bar direction guides
 	ctx.fillStyle = riskColour;
@@ -386,8 +390,9 @@ function drawGraph(graph, ctx, colour, size, data, displayAmount, minY, maxY, mi
 }
 
 
-
-var cData = "'EHZ'0";
+var cData = [];
+cData[0] = "'EHZ'0";
+cData[1] = "'EHZ'1";
 var data = [];
 data["'EHZ'0"] = [];
 data["'ENZ'0"] = [];
@@ -401,43 +406,24 @@ data["'ENN'1"] = [];
 
 
 
-function requestData() // request data from server
-{
-	
-}
-
-function recieveData() // recieve data from server
-{
-	
-	
-	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
-}
-
-function unrecieveData()
-{
-    data[cData].pop();
-    
-    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
-}
-
 function onLoad() {
 	root = document.documentElement;
 	
-	Graph = document.getElementById("graph");
-	GraphContext = Graph.getContext("2d");
-	GraphSize = Graph.offsetWidth - parseInt(window.getComputedStyle(root).getPropertyValue("--border"))*2; // bruh why does getpropertyvalue extend the style when setproperty extends the element
+	Graph[0] = document.getElementById("graph");
+	GraphContext[0] = Graph[0].getContext("2d");
+	Graph[1] = document.getElementById("graph2");
+	GraphContext[1] = Graph[1].getContext("2d");
+	GraphSize = Graph[0].offsetWidth - parseInt(window.getComputedStyle(root).getPropertyValue("--border"))*2; // bruh why does getpropertyvalue extend the style when setproperty extends the element
 	
 	riskMenuTransition = document.getElementById("riskMenuTransition");
 	riskMenuDisplay = document.getElementById("riskMenuDisplay");
 	riskWidth = document.getElementById("riskMenuBackground").offsetWidth;
 	riskOffset = root.offsetWidth - (riskMenuTransition.offsetLeft + riskMenuTransition.offsetWidth);
 	
-	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
-	setInterval(RequestData, 250); // Check for new data every 0.25 seconds
-	setInterval(RequestRisk, 250); // Check for new risk level every 0.25 seconds
-	document.addEventListener('mouseup', graphMouseUp);
+	loginBackground = document.getElementById("login");
+	loginBanner = document.getElementById("login2");
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+	setInterval(AnimationManager, 1000/FPS); // Run the AnimationManager every frame.
 }
 
 
@@ -453,17 +439,17 @@ function graphScrollHitboxY(x, y)
 
 var graphDraggingX = false;
 var graphDraggingY = false;
-function graphMouseDown(event) {
+function graphMouseDown(event, id) {
 	var bounds = event.target.getBoundingClientRect();
 	var clientX = event.clientX - bounds.left;
 	var clientY = event.clientY - bounds.top;
 	
 	if (graphScrollHitboxX(clientX, clientY)) {	
 		graphDraggingX = true;
-		graphMouseMove(event);
+		graphMouseMove(event, id);
 	} else if (graphScrollHitboxY(clientX, clientY)) {	
 		graphDraggingY = true;
-		graphMouseMove(event);
+		graphMouseMove(event, id);
 	}
 }
 
@@ -475,8 +461,8 @@ function graphMouseUp(event) {
 const SCROLLMINX = 100;
 const SCROLLMAXX = 10000;
 
-const SCROLLMINY = 0.005;
-const SCROLLMAXY = 2;
+const SCROLLMINY = 0.00025;
+const SCROLLMAXY = 0.05;
 
 const SCROLLBARX = 32; // Size of scroll bars (parallel to nearest graph edge)
 const SCROLLBARY = 24; // Size of scroll bars (perpendicular to nearest graph edge)
@@ -484,47 +470,56 @@ const SCROLLBARY = 24; // Size of scroll bars (perpendicular to nearest graph ed
 var minY = -40; // these do nothing right now, but they will be necessary if i decide to let user navigate graph freely
 var maxY = 40;
 
-var scrollPosX = 0;
-var scrollValueX = SCROLLMINX;
+var scrollPosX = [];
+scrollPosX[0] = 0;
+scrollPosX[1] = 0;
+var scrollValueX = [];
+scrollValueX[0] = SCROLLMINX;
+scrollValueX[1] = SCROLLMINX;
+
 
 var scrollValueXMin = 0;
 
-var scrollPosY = 0;
-var scrollValueY = SCROLLMAXY;
+var scrollPosY = [];
+scrollPosY[0] = 0;
+scrollPosY[1] = 0;
+var scrollValueY = [];
+scrollValueY[0] = SCROLLMAXY;
+scrollValueY[1] = SCROLLMAXY;
 
-function graphMouseMove(event) {
+function graphMouseMove(event, id) {
 	var bounds = event.target.getBoundingClientRect();
 	var clientX = event.clientX - bounds.left;
 	var clientY = event.clientY - bounds.top;
 	
 	if (graphDraggingX)
 	{
-		scrollPosX = clientX - GRAPHMARGINX - SCROLLBARX;
+		scrollPosX[id] = clientX - GRAPHMARGINX - SCROLLBARX;
 		var scrollPosXMax = GraphSize - GRAPHMARGINX*2 - SCROLLBARX*2;
-		if (scrollPosX < 0)
+		if (scrollPosX[id] < id)
 		{
-			scrollPosX = 0;
-		} else if (scrollPosX > scrollPosXMax)
+			scrollPosX[id] = id;
+		} else if (scrollPosX[id] > scrollPosXMax)
 		{
-			scrollPosX = scrollPosXMax;
+			scrollPosX[id] = scrollPosXMax;
 		}
 		
-		scrollValueX = stretchNum(scrollPosX, 0, scrollPosXMax, SCROLLMINX, SCROLLMAXX);
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+		scrollValueX[id] = stretchNum(scrollPosX[id], id, scrollPosXMax, SCROLLMINX, SCROLLMAXX);
+		drawGraph(id, "#ffffff", GraphSize, data[cData[id]], scrollValueX[id], -scrollValueY[id], scrollValueY[id], scrollValueXMin);
 	} else if (graphDraggingY) 
 	{
-		scrollPosY = clientY - GRAPHMARGINY - SCROLLBARX;
+		scrollPosY[id] = clientY - GRAPHMARGINY - SCROLLBARX;
 		var scrollPosYMax = GraphSize - GRAPHMARGINY*2 - SCROLLBARX*2;
-		if (scrollPosY < 0)
+		if (scrollPosY[id] < id)
 		{
-			scrollPosY = 0;
-		} else if (scrollPosY > scrollPosYMax)
+			scrollPosY[id] = id;
+		} else if (scrollPosY[id] > scrollPosYMax)
 		{
-			scrollPosY = scrollPosYMax;
+			scrollPosY[id] = scrollPosYMax;
 		}
 		
-		scrollValueY = stretchNum(scrollPosYMax-scrollPosY, 0, scrollPosYMax, SCROLLMINY, SCROLLMAXY);
-		drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+		scrollValueY[id] = stretchNum(scrollPosYMax-scrollPosY[id], id, scrollPosYMax, SCROLLMINY, SCROLLMAXY);
+		drawGraph(id, "#ffffff", GraphSize, data[cData[id]], scrollValueX[id], -scrollValueY[id], scrollValueY[id], scrollValueXMin);
 	}
 }
 
@@ -533,9 +528,9 @@ function graphMouseLeave() {
 	graphDraggingY = false;*/
 }
 
-function changeGraph(newGraph) {
-    cData = newGraph.replaceAll("/QUOTE/", "'");
-    drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+function changeGraph(newGraph, id) {
+    cData[id] = newGraph.replaceAll("/QUOTE/", "'");
+    drawGraph(id, "#ffffff", GraphSize, data[cData[id]], scrollValueX[id], -scrollValueY[id], scrollValueY[id], scrollValueXMin);
 }
 
 window.onload = onLoad;
@@ -557,11 +552,113 @@ function loadData(rawData)
 	});
 }
 
+
+var ip = "localhost";
+var port = "4000";
+var pw = "";
+var token = "";
+
+var ipInput = "ip";
+var portInput = "port";
+var pwInput = "pw";
+var textOutput = "loginText";
+
+var loginClicked = false;
+var admin = false;
+
+var adminClasses = [
+	"adminLabel",
+	"adminInput",
+	"adminButton",
+	"adminRow",
+	"admin"
+];
+
+var LoginReader = new FileReader();
+function TryLogin() 
+{
+	if (loginClicked)
+	{
+		return; // lazy
+	}
+	loginClicked = true;
+	
+	var ip = document.getElementById(ipInput).value;
+	var port = document.getElementById(portInput).value;
+	var pw = document.getElementById(pwInput).value;
+	document.getElementById(textOutput).innerHTML = "Connecting to server...";
+	
+	fetch("http://" + ip + ":" + port + "/login", {
+		headers: {
+			"pw": pw
+		}
+	})
+	.then((response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+			document.getElementById(textOutput).innerHTML = "Failed to connect to server. (Status: " + response.status + ")";
+		}
+
+		return response.blob();
+	})
+	.then((response) => {
+		LoginReader.readAsText(response);
+	});
+}
+function SuccessfulLogin()
+{
+	if (token.length > 100) // only display admin panel if we got a token from the server
+	{
+		admin = true;
+		document.getElementById(textOutput).innerHTML = "Successfully connected to server. (Admin access granted)";
+	} else {
+		for (var i = 0; i < adminClasses.length; i++)
+		{
+			var classObjects = Array.from(document.getElementsByClassName(adminClasses[i]));
+			for (var j = 0; j < classObjects.length; j++)
+			{
+				classObjects[j].remove(); // token system means the server wouldnt care for any changes made through this menu without admin anyway, its deletion from the page is purely aesthetic
+			}
+		}
+		
+		document.getElementById(textOutput).innerHTML = "Successfully connected to server.";
+	}
+	
+	setInterval(RequestData, 250); // Check for new data every 0.25 seconds
+	setInterval(RequestRisk, 250); // Check for new risk level every 0.25 seconds
+	document.addEventListener('mouseup', graphMouseUp);
+	
+	LoginAnimation.Run(cFrame+1);
+}
+LoginReader.addEventListener('load', () => {
+	token = LoginReader.result;
+	if ((token != "0") && (token.length < 100))
+	{
+		document.getElementById(textOutput).innerHTML = "Failed to connect to server. (Unexpected response \"" + token + "\")";
+	} else {
+		SuccessfulLogin();
+	}
+});
+var loginBackground;
+var loginBanner;
+LoginAnimation = new Animation(
+	function (cProgress) {
+		loginBanner.style.setProperty("top", "calc(" + stretchNum(Math.sin(stretchNum(cProgress, 0, FPS*2, 0, Math.PI/2)), 0, 1, 50, -50) + "% - 100px)");
+		loginBackground.style.setProperty("opacity", Math.sin(stretchNum(cProgress, 0, FPS*2, Math.PI/2, 0)).toString());
+	},
+	function() {
+		loginBanner.remove();
+		loginBackground.remove()
+	},
+	FPS*2,
+	"Change Text A"
+);
+
 var DataReader = new FileReader();
 var RiskReader = new FileReader();
 function RequestData() 
 {
-	fetch("http://localhost:4000/data", { //" 192.168.1.16:4000/data", { //161.29.209.219
+	fetch("http://" + ip + ":" + port + "/data", {
 		headers: {
 			"id": lastID
 		}
@@ -580,11 +677,7 @@ function RequestData()
 
 function RequestRisk() 
 {
-	fetch("http://192.168.1.16:4000/risk", { //161.29.209.219
-		headers: {
-			"id": lastID
-		}
-	})
+	fetch("http://" + ip + ":" + port + "/risk", {})
 	.then((response) => {
 		if (!response.ok) {
 			throw new Error(`HTTP error! Status: ${response.status}`);
@@ -607,12 +700,16 @@ DataReader.addEventListener('load', () => {
 		str += arr[i];
 	}
 	
+	
 	//console.log(arr);
 	//console.log(arr[arr.length-2]);
 	//console.log(str);
 	loadData(str);
 	
-	drawGraph(Graph, GraphContext, "#ffffff", GraphSize, data[cData], scrollValueX, -scrollValueY, scrollValueY, scrollValueXMin);
+	for (var i = 0; i < GraphContext.length; i++)
+	{
+		drawGraph(i, "#ffffff", GraphSize, data[cData[i]], scrollValueX[i], -scrollValueY[i], scrollValueY[i], scrollValueXMin);
+	}
 });
 
 RiskReader.addEventListener('load', () => {
@@ -621,5 +718,48 @@ RiskReader.addEventListener('load', () => {
 	//console.log(nRisk);
 	if ((nRisk != null) && (nRisk != risk)) {
 		changeRisk(nRisk);
+	}
+});
+
+
+
+var EditReader = new FileReader();
+function EditServer(token, target, value)
+{
+	fetch("http://" + ip + ":" + port + "/edit", {
+		headers: {
+			"token": token,
+			"target": target,
+			"value": value
+		}
+	})
+	.then((response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		return response.blob();
+	})
+	.then((response) => {
+		EditReader.readAsText(response);
+	});
+}
+
+EditReader.addEventListener('load', () => {
+	switch(EditReader.result)
+	{
+		case ("1"):
+			console.log("Failed to edit value (invalid input)");
+			break;
+		case ("2"):
+			console.log("Failed to edit value (invalid target)");
+			break;
+		case ("3"):
+			console.log("Token invalid. Reloading page...");
+			location.reload();
+			break;
+		/*default:
+			console.log(EditReader.result);
+			break;*/
 	}
 });
