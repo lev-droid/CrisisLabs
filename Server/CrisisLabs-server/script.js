@@ -5,7 +5,6 @@ const udp = require("dgram");
 
 // without the need for a registration system, or even as much as a username, elaborate cryptographic systems prove rather unneccessary. a simple password stored on the server should suffice (encrypting the password would functionally be the same as just using a longer password, cryptographically speaking.).
 const PASSWORD = "myshake"; // NOTE: Move this to a .env file (or whatever they're called)
-const TOKENEXPIRE = 10000; // how many milliseconds the token is valid for
 var tokens = [];
 // data backlog, used because the site has to send a request to the server rather than listening to a live feed
 var data = [];
