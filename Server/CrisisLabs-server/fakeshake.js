@@ -27,8 +27,8 @@ function GenerateOutput(min, max, digits, stations, interval, ports, ip, x) {
 	}
 }
 
-const MIN = 1000;
-const MAX = 40000;
+const MIN = -200000;
+const MAX = 200000;
 const DIGITS = 5;
 const STATIONS = [
 	"'EHZ'",
@@ -38,7 +38,7 @@ const STATIONS = [
 ];
 const INTERVAL = 0.25;
 const PORTS = [
-	8888
+	8889
 ];
 const IP = "localhost";
 const X = 20;

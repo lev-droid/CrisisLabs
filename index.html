@@ -1,36 +1,143 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>CRISiSLab</title>
+		<title>CRISiSLab Dashboard</title>
 		<script src="script.js"></script>
 		<link rel="stylesheet" href="style.css">
+		<link rel="icon" href="logo.png">
 	</head>
 	
 	<body>
-
-		<canvas class="graph" id="graph" width="384" height="384" onmousemove="graphMouseMove(event)" onmousedown="graphMouseDown(event)" onmouseleave="graphMouseLeave()"> 
-			Your browser does not support the canvas element. 
-        </canvas>
 		
-		<div class="graphMenuTop"></div>
-        <div class="graphMenu">
-            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/0");'>EHZ</button>
-            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENZ/QUOTE/0");'>ENZ</button>
-            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENN/QUOTE/0");'>ENN</button>
-            <button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENE/QUOTE/0");'>ENE</button>
-        </div>
-		<div class="graphMenuBottom"></div>
+		<!-- literally copy+pasted the graph -->
+		<div>
+			<canvas class="graph" id="graph" width="384" height="384" onmousemove="graphMouseMove(event, 0)" onmousedown="graphMouseDown(event, 0)" onmouseleave="graphMouseLeave()"> 
+				Your browser does not support the canvas element. 
+			</canvas>
+			
+			<div class="graphMenuTop"></div>
+			<div class="graphMenu">
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/0", 0);'>EHZ</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/0", 0);'>ENZ</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENN/QUOTE/0", 0);'>ENN</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENE/QUOTE/0", 0);'>ENE</button>
+			</div>
+			<div class="graphMenuBottom"></div>
+		</div>
+		
+		<div id="graphContainer">
+			<canvas class="graph" id="graph2" width="384" height="384" onmousemove="graphMouseMove(event, 1)" onmousedown="graphMouseDown(event, 1)" onmouseleave="graphMouseLeave()"> 
+				Your browser does not support the canvas element. 
+			</canvas>
+			
+			<div class="graphMenuTop"></div>
+			<div class="graphMenu">
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/1", 1);'>EHZ</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/EHZ/QUOTE/1", 1);'>ENZ</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENN/QUOTE/1", 1);'>ENN</button>
+				<button class="graphMenuButton" onclick='changeGraph("/QUOTE/ENE/QUOTE/1", 1);'>ENE</button>
+			</div>
+			<div class="graphMenuBottom"></div>
+		</div>
 		
 		<!-- these have ids instead of classes so i can script them -->
 		<div id="riskMenu"> 
-			<div id="riskMenuBackgroundTop"><div id="riskMenuLabel">THREAT LEVEL</div></div>
+			<div id="riskMenuBackgroundTop"><div id="riskMenuLabel">QUAKE LEVEL</div></div>
 			<div id="riskMenuBackgroundTopTriangle"></div>
 			
-			<div id="riskMenuBackground"><div id="riskMenuDisplay">LOW RISK</div></div>
+			<div id="riskMenuBackground"><div id="riskMenuDisplay">NONE</div></div>
 			<div id="riskMenuBackgroundTriangle"></div>
 			<div id="riskMenuTransition"></div>
 		</div>
         
-
+		<div id="login">
+			<div id="login2">
+				<div class="login3">
+					<img class="loginImage" src="logo2.png"></img>
+					
+					<div class="loginIP">
+						<label class="loginLabel" for="ip">IP:</label>
+						<input class="loginInput" id="ip" type="text" name="ip" value="localhost">
+					</div>
+					
+					<div class="loginPort">
+						<label class="loginLabel" for="port">Port:</label>
+						<input class="loginInput" id="port" type="text" name="port" value="4000">
+					</div>
+					
+					<div class="loginPW">
+						<label class="loginLabel" for="pw">Password: (optional)</label>
+						<input class="loginInput" id="pw" type="text" name="pw">
+					</div>
+					
+					<button id="loginButton" onclick="TryLogin()"><b>LOGIN</b></button>
+					<p id="loginText"></p>
+				</div>
+			</div>
+		</div>
+		
+		<div id="admin" class="admin">
+			<table>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="rounding">Rounding:</label></th>
+					<th><input class="adminInput" id="rounding" type="text" name="rounding" value="10"></th>
+					<th><button class="adminButton" id="roundingUpdate" onclick="EditServer(token, 'rounding', document.getElementById('rounding').value);"><b>SEND</b></button></th>
+				</tr>
+				
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="detrendlimit">Detrending Precision:</label></th>
+					<th><input class="adminInput" id="detrendlimit" type="text" name="detrendlimit" value="50"></th>
+					<th><button class="adminButton" id="detrendlimitUpdate" onclick="EditServer(token, 'detrendlimit', document.getElementById('detrendlimit').value);"><b>SEND</b></button></th>
+				</tr>
+				
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="shakewindow">Major Alert Window:</label></th>
+					<th><input class="adminInput" id="shakewindow" type="text" name="shakewindow" value="5.0"></th>
+					<th><button class="adminButton" id="shakewindowUpdate" onclick="EditServer(token, 'shakewindow', document.getElementById('shakewindow').value);"><b>SEND</b></button></th>
+				</tr>
+				
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="thresholdEHZ">Threshold (EHZ):</label></th>
+					<th><input class="adminInput" id="thresholdEHZ" type="text" name="thresholdEHZ" value="0.1"></th>
+					<th><button class="adminButton" id="thresholdEHZUpdate" onclick="EditServer(token, 'threshold', '/QUOTE/EHZ/QUOTE/,' + document.getElementById('thresholdEHZ').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="thresholdENZ">Threshold (ENZ):</label></th>
+					<th><input class="adminInput" id="thresholdENZ" type="text" name="thresholdENZ" value="10"></th>
+					<th><button class="adminButton" id="thresholdENZUpdate" onclick="EditServer(token, 'threshold', '/QUOTE/ENZ/QUOTE/,' + document.getElementById('thresholdENZ').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="thresholdENN">Threshold (ENN):</label></th>
+					<th><input class="adminInput" id="thresholdENN" type="text" name="thresholdENN" value="10"></th>
+					<th><button class="adminButton" id="thresholdENNUpdate" onclick="EditServer(token, 'threshold', '/QUOTE/ENN/QUOTE/,' + document.getElementById('thresholdENN').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="thresholdENE">Threshold (ENE):</label></th>
+					<th><input class="adminInput" id="thresholdENE" type="text" name="thresholdENE" value="10"></th>
+					<th><button class="adminButton" id="thresholdENEUpdate" onclick="EditServer(token, 'threshold', '/QUOTE/ENE/QUOTE/,' + document.getElementById('thresholdENE').value);"><b>SEND</b></button></th>
+				</tr>
+				
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="conversionEHZ">Conversion (EHZ):</label></th>
+					<th><input class="adminInput" id="conversionEHZ" type="text" name="conversionEHZ" value="39965000"></th>
+					<th><button class="adminButton" id="conversionEHZUpdate" onclick="EditServer(token, 'conversion', '/QUOTE/EHZ/QUOTE/,' + document.getElementById('conversionEHZ').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="conversionENZ">Conversion (ENZ):</label></th>
+					<th><input class="adminInput" id="conversionENZ" type="text" name="conversionENZ" value="384500"></th>
+					<th><button class="adminButton" id="conversionENZUpdate" onclick="EditServer(token, 'conversion', '/QUOTE/ENZ/QUOTE/,' + document.getElementById('conversionENZ').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="conversionENN">Conversion (ENN):</label></th>
+					<th><input class="adminInput" id="conversionENN" type="text" name="conversionENN" value="384500"></th>
+					<th><button class="adminButton" id="conversionENNUpdate" onclick="EditServer(token, 'conversion', '/QUOTE/ENN/QUOTE/,' + document.getElementById('conversionENN').value);"><b>SEND</b></button></th>
+				</tr>
+				<tr class="adminRow">
+					<th><label class="adminLabel" for="conversionENE">Conversion (ENE):</label></th>
+					<th><input class="adminInput" id="conversionENE" type="text" name="conversionENE" value="384500"></th>
+					<th><button class="adminButton" id="conversionENEUpdate" onclick="EditServer(token, 'conversion', '/QUOTE/ENE/QUOTE/,' + document.getElementById('conversionENE').value);"><b>SEND</b></button></th>
+				</tr>
+			</table>
+		</div>
 	</body>
 </html>

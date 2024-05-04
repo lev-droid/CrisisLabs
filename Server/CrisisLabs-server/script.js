@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const udp = require("dgram");
+const udp = require('dgram');
+const crypto = require('crypto');
 
 
 // without the need for a registration system, or even as much as a username, elaborate cryptographic systems prove rather unneccessary. a simple password stored on the server should suffice (encrypting the password would functionally be the same as just using a longer password, cryptographically speaking.).
 const PASSWORD = "myshake"; // NOTE: Move this to a .env file (or whatever they're called)
+const TOKENEXPIRE = 3600000; // how many milliseconds the token is valid for (currently 1h)
 var tokens = [];
 // data backlog, used because the site has to send a request to the server rather than listening to a live feed
 var data = [];
@@ -20,7 +22,7 @@ detrendTable["'ENZ'1"] = [];
 detrendTable["'ENN'1"] = [];
 detrendTable["'ENE'1"] = [];
 
-var detrendTime = 0;
+var detrendTime = [];
 
 var ROUNDING = 10;
 
@@ -30,14 +32,15 @@ CONVERSION["'ENZ'"] = 384500;
 CONVERSION["'ENN'"] = 384500;
 CONVERSION["'ENE'"] = 384500;
 
-var threshold = [];
-threshold["'EHZ'"] = 0.1;
-threshold["'ENZ'"] = 10;
-threshold["'ENN'"] = 10;
-threshold["'ENE'"] = 10;
+var THRESHOLD = [];
+THRESHOLD["'EHZ'"] = 0.1;
+THRESHOLD["'ENZ'"] = 10;
+THRESHOLD["'ENN'"] = 10;
+THRESHOLD["'ENE'"] = 10;
 
 var risk = 0;
 var activatedShakes = [];
+var SHAKEWINDOW = 5; // how many seconds it will stay in alert mode for before reverting to default
 
 function GetAverage(array)
 {
@@ -49,14 +52,41 @@ function GetAverage(array)
 	return (avg / array.length);
 }
 
-function ConvertData(input, shake)
+function UpdateRisk(time)
 {
-	// NOTE: REMEMBER TO PUT A SANITY CHECK BEFORE PARSING DATA INTO THIS FUNCTION
+	for (var i = 0; i < activatedShakes.length; i++) // after a certain period of low activity, deactivate a shake's alert. 
+	{
+		if (activatedShakes[i].activated + SHAKEWINDOW <= time)
+		{
+			//console.log(activatedShakes[i].activated + " vs " + time);
+			activatedShakes.splice(i, 1);
+			i--;
+		}
+	}
+	
+	//console.log(activatedShakes.length + "/" + shakes.length);
+	
+	if (activatedShakes.length == 0)
+	{
+		risk = 0;
+	} else if (activatedShakes.length >= shakes.length)
+	{
+		risk = 2;
+	} else 
+	{
+		risk = 1;
+	}
+}
 
+function ConvertData(input, shakeObj)
+{
 	// I know I said I was going to un-spaghetti Brendan's code, but at least to some extent, it was programmed the way it was due to the formatting of the input data. Though this is better, it's still not really all that great.
 	var output = "";
 	var inputArr = input.replace('}', '').replace('{', '').split(',');
-
+	
+	// lazy, but it doesnt really matter much
+	var shake = shakeObj.id;
+	
 	// The first index is a string (the seismograph this data came from), the second is a float, and the rest are all ints. We need to convert them all to their respective types.
 	// I could do this more expandably, but it'd come at the cost of a heavy hit to efficiency, so I'll leave it for now.
 	var station = inputArr[0];
@@ -71,11 +101,11 @@ function ConvertData(input, shake)
 	// Now that the data has been properly organized, we need to process it - detrend it, convert it to m/s, etc.
 
 	// Check if a default time value has been set - if not, set one.
-	if (detrendTime == 0)
+	if (detrendTime[shake] == null)
 	{
-		detrendTime = time;
+		detrendTime[shake] = time;
 	}
-	time -= detrendTime;
+	time -= detrendTime[shake];
 
 	// Calculate the average of recent data.
 	var avg = 0;
@@ -90,25 +120,13 @@ function ConvertData(input, shake)
 	for (var i = 0; i < cData.length; i++)
 	{
 		cData[i] = (cData[i] - avg) / CONVERSION[station];
-		if ((cData[i] > threshold[station]) || (cData[i]) < threshold[station]*-1)
+		if ((cData[i] > THRESHOLD[station]) || (cData[i]) < THRESHOLD[station]*-1)
 		{
-			if (shake == 1)
+			shakeObj.activated = time;
+			if (!activatedShakes.includes(shakeObj))
 			{
-				console.log(cData[i] + " vs " + threshold[station] + "\n-----------\n");
+				activatedShakes.push(shakeObj);
 			}
-			console.log(activatedShakes);
-			if (!activatedShakes.includes(shake))
-			{
-				activatedShakes.push(shake);
-				if (activatedShakes.length == shakes.length) // Case that all shakes have gone over threshold
-				{
-					risk = 4
-				} else if (activatedShakes.length == 1) // Case that this is the first shake to go over threshold
-				{
-					risk = 1
-				}
-			}
-			//console.log(risk);
 		} else {
 			// exceptional data points wont be counted toward detrending
 			detrendTable[station2].splice(0, 0, cData[i]);
@@ -118,6 +136,8 @@ function ConvertData(input, shake)
 			}
 		}
 	}
+	
+	UpdateRisk(time);
 	output += "~" + station2 + "," + time + "," + (GetAverage(cData).toFixed(ROUNDING));
 	//console.log(output + "\n-----------\n");
 	//console.log(shake);
@@ -130,6 +150,7 @@ class Shake
 	{
 		this.id = id;
 		this.port = port;
+		this.activated = 0; // time that this shake last triggered an alert
 	};
 
 
@@ -142,8 +163,8 @@ class Shake
 
 		if (msg != null)
 		{
-			console.log(msg.toString());
-			data.push(ConvertData(msg.toString(), this.id) + "|" + data.length + "|");
+			//console.log(msg.toString());
+			data.push(ConvertData(msg.toString(), this) + "|" + data.length + "|");
 		}
 	};
 };
@@ -154,16 +175,15 @@ for (var i = 0; i < shakes.length; i++)
 	var cSocket = udp.createSocket('udp4');
 
 	var cShake = shakes[i];
-
-	(function(cShake){
+	(function(cShake2){
 		cSocket.on("message", function(msg, info) {
-			cShake.RecieveData(msg, info);
+			cShake2.RecieveData(msg, info);
+		});
+		cSocket.on("listening", function() {
+			console.log("Server listening for shake output on port " + cShake2.port);
 		});
 	})(cShake);
-
-	cSocket.on("listening", function() {
-		console.log("Server listening for shake output on port " + cShake.port);
-	});
+	
 	cSocket.bind(cShake.port);
 }
 
@@ -191,44 +211,123 @@ server.get('/risk', (req,res)=>{
 server.get('/login', (req,res)=>{
 	if (req.header("pw") == PASSWORD)
 	{
-		var arr = [0];
-		self.crypto.getRandomValues(arr); // idk how entropic this is, but it should be enough for our purposes
-		tokens.push(arr);
-		res.send(arr);
-	}
-});
-server.get('/logout', (req,res)=>{
-	
-});
-server.get('/edit', (req,res)=>{
-	var bool = false;
-	var token = (req.header("token");
-	// theres a native js implementation for checking if a specific value is in an array but im pretty sure it literally just does this
-	for (int i = 0; i < tokens.length; i++)
-	{
-		if (tokens[i] == token)
-		{
-			bool = true; // we only want to set it to true if the token is in the array (rather than also setting it to false if the token isn't) so we have to set the bool in an if statement like this
-		}
-	}
-	
-	if (bool){
+		var token = crypto.randomBytes(256).toString('hex');
 		
+		tokens.push(token);
+		res.send(token);
+		//console.log(tokens);
+		
+		(function(token) { // remove the token after a certain period of time
+			setTimeout(function() {
+				var index = tokens.indexOf(token);
+				if (!isNaN(index))
+				{
+					tokens.splice(index, 1);
+					//console.log(tokens);
+				}
+			}, TOKENEXPIRE);
+		})(token);
+	} else {
+		//console.log("Invalid password \"" + req.header("pw") + "\" recieved from IP " + req.ip);
+		res.send("0");
+	}
+});
+// commented out because its unused, not because it doesnt work or anything
+/*
+server.get('/logout', (req,res)=>{
+	var token = req.header("token");
+	var index = tokens.indexOf(token);
+	if (!isNaN(index))
+	{
+		tokens.splice(index, 1);
+		//console.log(tokens);
+	}
+	res.send();
+});*/
+server.get('/edit', (req,res)=>{
+	// i'm pretty sure this isn't meant to be done through a request like this, but it (should) work, so ill stick with it (at least for now)
+	var token = req.header("token");
+	if (tokens.indexOf(token) != -1) 
+	{
+		switch (req.header("target"))
+		{
+			case ("rounding"):
+				var value = parseInt(req.header("value"));
+				if (!(isNaN(value)))
+				{
+					ROUNDING = value;
+					res.send("0"); // indicate successful operation
+					break;
+				}
+				res.send("1"); // indicate unsuccessful operation (invalid value)
+				break;
+				
+			case ("conversion"):
+				var value = req.header("value").replaceAll("/QUOTE/", "'").split(',');
+				if (value.length != 2)
+				{
+					res.send("1");
+					break;
+				}
+				value[1] = parseInt(value[1]);
+				if (isNaN(value[1]))
+				{
+					res.send("1");
+					break;
+				}
+				CONVERSION[value[0]] = value[1];
+				res.send("0");
+				break;
+				
+			case ("threshold"):
+				var value = req.header("value").replaceAll("/QUOTE/", "'").split(',');
+				if (value.length != 2)
+				{
+					res.send("1");
+					break;
+				}
+				value[1] = parseFloat(value[1]);
+				if (isNaN(value[1]))
+				{
+					res.send("1");
+					break;
+				}
+				THRESHOLD[value[0]] = value[1];
+				res.send("0");
+				break;
+				
+			case ("detrendlimit"):
+				var value = parseInt(req.header("value"));
+				if (!(isNaN(value)))
+				{
+					DETRENDLIMIT = value;
+					res.send("0");
+					break;
+				}
+				res.send("1");
+				break;
+				
+			case ("shakewindow"):
+				var value = parseFloat(req.header("value"));
+				if (!(isNaN(value)))
+				{
+					SHAKEWINDOW = value;
+					res.send("0");
+					break;
+				}
+				res.send("1");
+				break;
+				
+			default:
+				console.log("Invalid request recieved from IP " + req.ip + " (Content: \"" + req.header("value") + "\")");
+				res.send("2"); // indicate unsuccessful operation (invalid request)
+				break;
+		}
+	} else {
+		res.send("3"); // indicate unsuccessful operation (invalid token)
 	}
 });
 
 server.listen(4000, ()=>{
 	console.log("Server listening for data requests on port 4000");
 });
-/*
-const serverRisk = express();
-serverRisk.use(cors());
-
-serverRisk.get('/risk', (req,res)=>{
-	var response = risk;
-	res.send(response);
-});
-
-serverRisk.listen(4000, ()=>{
-	console.log("Server listening for threat requests on port 4001");
-});*/
